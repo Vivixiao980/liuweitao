@@ -1160,6 +1160,39 @@ app.get('/api/system-status', (req, res) => {
     });
 });
 
+// 便捷路由：重定向到语音克隆管理页面
+app.get('/voice-cloning', (req, res) => {
+  res.redirect('/voice-clone-manager.html');
+});
+
+// 全局错误处理中间件 (必须放在所有路由和中间件之后)
+app.use((err, req, res, next) => {
+  console.error("全局错误处理器捕获到错误:", err);
+
+  // 处理 Multer 抛出的错误
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ 
+      success: false,
+      error: `文件上传错误: ${err.message}`,
+      code: err.code 
+    });
+  }
+
+  // 处理其他类型的错误
+  if (err) {
+    // 如果响应头已经发送，则将错误委托给 Express 的默认处理器
+    if (res.headersSent) {
+      return next(err);
+    }
+    return res.status(500).json({ 
+      success: false,
+      error: err.message || '服务器内部错误' 
+    });
+  }
+
+  next();
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`服务器运行在端口 ${PORT}`);

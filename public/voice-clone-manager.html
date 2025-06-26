@@ -323,6 +323,51 @@
             font-size: 4rem;
             margin-bottom: 20px;
         }
+
+        .status-check {
+            margin: 20px 0;
+        }
+
+        .system-status {
+            margin-top: 15px;
+        }
+
+        .status-report {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .status-report h3 {
+            margin: 0 0 15px 0;
+            color: #374151;
+        }
+
+        .status-item {
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .status-item.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-item.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .status-item.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
     </style>
 </head>
 <body>
@@ -330,6 +375,15 @@
         <div class="header">
             <h1>🎤 语音克隆管理</h1>
             <p>管理和使用您的专属语音克隆</p>
+        </div>
+
+        <!-- 系统状态检查 -->
+        <div class="section">
+            <h2 class="section-title">🔧 系统状态检查</h2>
+            <div class="status-check">
+                <button onclick="checkSystemStatus()" class="refresh-btn">🔍 检查系统状态</button>
+                <div id="systemStatus" class="system-status"></div>
+            </div>
         </div>
 
         <div class="main-content">
@@ -557,6 +611,48 @@
             } catch (error) {
                 console.error('设置默认语音失败:', error);
                 showStatus(`设置失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            statusDiv.innerHTML = '<div class="loading"></div><span>正在检查系统状态...</span>';
+
+            try {
+                // 检查API连接
+                const apiResponse = await fetch('/api/voice-clones');
+                const apiResult = await apiResponse.json();
+                
+                let statusHtml = '<div class="status-report">';
+                statusHtml += '<h3>📊 系统状态报告</h3>';
+                
+                // API连接状态
+                if (apiResponse.ok) {
+                    statusHtml += '<div class="status-item success">✅ API连接正常</div>';
+                } else {
+                    statusHtml += '<div class="status-item error">❌ API连接失败</div>';
+                }
+                
+                // 配置状态
+                if (apiResult.success) {
+                    statusHtml += '<div class="status-item success">✅ 配置文件加载成功</div>';
+                    statusHtml += `<div class="status-item info">📋 当前语音数量: ${apiResult.voices?.length || 0}</div>`;
+                } else {
+                    statusHtml += '<div class="status-item error">❌ 配置加载失败: ' + (apiResult.error || '未知错误') + '</div>';
+                }
+                
+                // 测试文件上传
+                statusHtml += '<div class="status-item info">💡 提示: 请确保您的MiniMax API密钥格式正确 (sk-开头)</div>';
+                statusHtml += '<div class="status-item info">🔑 当前支持的文件格式: MP3, WAV, M4A (最大50MB)</div>';
+                
+                statusHtml += '</div>';
+                statusDiv.innerHTML = statusHtml;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status-report">
+                    <div class="status-item error">❌ 系统检查失败: ${error.message}</div>
+                    <div class="status-item info">💡 请检查服务器是否正常运行</div>
+                </div>`;
             }
         }
 
