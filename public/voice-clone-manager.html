@@ -578,6 +578,8 @@
 
         async function testVoice(voiceId) {
             try {
+                showStatus('🔊 正在准备试听...', 'info');
+                
                 const response = await fetch('/api/synthesize-speech', {
                     method: 'POST',
                     headers: {
@@ -590,13 +592,40 @@
                 });
 
                 const result = await response.json();
+                console.log('试听响应:', result);
                 
-                if (result.success && result.audioUrl) {
-                    const audio = new Audio(result.audioUrl);
-                    audio.play();
-                    showStatus('🔊 正在播放试听...', 'info');
+                if (result.success && (result.audioUrl || result.audio_url)) {
+                    const audioUrl = result.audioUrl || result.audio_url;
+                    
+                    let statusMessage = '🔊 正在播放试听...';
+                    if (result.source === 'local') {
+                        statusMessage = '🔊 播放本地音频样本...';
+                    } else if (result.source === 'fallback') {
+                        statusMessage = '🔊 使用默认音色播放...';
+                    }
+                    
+                    const audio = new Audio(audioUrl);
+                    
+                    audio.onloadeddata = () => {
+                        console.log('音频加载完成，开始播放');
+                        audio.play().catch(err => {
+                            console.log('自动播放失败:', err.message);
+                            showStatus('自动播放失败，请手动点击播放按钮', 'error');
+                        });
+                    };
+                    
+                    audio.onerror = (e) => {
+                        console.error('音频播放错误:', e);
+                        showStatus('音频播放失败，请检查文件是否存在', 'error');
+                    };
+                    
+                    audio.onended = () => {
+                        showStatus('试听完成', 'success');
+                    };
+                    
+                    showStatus(statusMessage, 'info');
                 } else {
-                    showStatus(`试听失败: ${result.message || '未知错误'}`, 'error');
+                    showStatus(`试听失败: ${result.message || result.error || '未知错误'}`, 'error');
                 }
             } catch (error) {
                 console.error('试听失败:', error);

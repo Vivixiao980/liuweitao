@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音克隆合成测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 25px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .test-section:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        }
+        
+        .section-title {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .audio-player {
+            margin: 15px 0;
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .voice-info {
+            background: #e3f2fd;
+            border: 2px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .voice-info h4 {
+            margin: 0 0 10px 0;
+            color: #1565c0;
+        }
+        
+        .voice-info p {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .preset-texts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .preset-text {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+        
+        .preset-text:hover {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 语音克隆合成测试</h1>
+        <p class="subtitle">使用您的语音克隆来合成新的文本内容</p>
+        
+        <!-- 当前语音信息 -->
+        <div class="test-section">
+            <h3 class="section-title">📋 当前语音配置</h3>
+            <button onclick="loadCurrentVoice()">🔄 刷新配置信息</button>
+            <div id="voiceInfo" class="voice-info" style="display: none;">
+                <h4>当前语音克隆信息</h4>
+                <p><strong>Voice ID:</strong> <span id="currentVoiceId">-</span></p>
+                <p><strong>Voice Name:</strong> <span id="currentVoiceName">-</span></p>
+                <p><strong>Platform:</strong> <span id="currentPlatform">-</span></p>
+            </div>
+        </div>
+        
+        <!-- 文本输入和合成 -->
+        <div class="test-section">
+            <h3 class="section-title">✍️ 文本合成</h3>
+            
+            <div class="input-group">
+                <label for="synthesisText">输入要合成的文本：</label>
+                <textarea id="synthesisText" placeholder="在这里输入您想要用克隆语音合成的文本...">你好，我是礼明老师。今天我们来学习一个新的知识点，希望大家认真听讲。</textarea>
+            </div>
+            
+            <div class="preset-texts">
+                <div class="preset-text" onclick="setPresetText('你好，我是礼明老师，很高兴为大家服务！')">
+                    问候语
+                </div>
+                <div class="preset-text" onclick="setPresetText('今天我们来学习一个重要的概念，请大家仔细听讲。')">
+                    教学开场
+                </div>
+                <div class="preset-text" onclick="setPresetText('这个问题非常好，让我来详细解释一下。')">
+                    回答问题
+                </div>
+                <div class="preset-text" onclick="setPresetText('希望通过今天的学习，大家都能有所收获。谢谢大家！')">
+                    课程结束
+                </div>
+                <div class="preset-text" onclick="setPresetText('如果还有不明白的地方，欢迎随时提问。')">
+                    互动引导
+                </div>
+                <div class="preset-text" onclick="setPresetText('让我们一起来分析这个案例，看看其中的关键要点。')">
+                    案例分析
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button onclick="synthesizeWithClone()" class="btn-success">
+                    🎵 使用克隆语音合成
+                </button>
+                <button onclick="synthesizeWithDefault()" class="btn-warning">
+                    🔊 使用默认语音合成
+                </button>
+                <button onclick="clearResults()" class="btn-danger">
+                    🗑️ 清空结果
+                </button>
+            </div>
+            
+            <div id="synthesisStatus"></div>
+            <audio id="synthesisPlayer" class="audio-player" controls style="display: none;"></audio>
+        </div>
+        
+        <!-- 批量测试 -->
+        <div class="test-section">
+            <h3 class="section-title">🔄 批量测试</h3>
+            <p>使用预设的多个文本进行批量合成测试</p>
+            
+            <button onclick="runBatchTest()" class="btn-success">
+                🚀 开始批量测试
+            </button>
+            <button onclick="stopBatchTest()" class="btn-danger" id="stopBatchBtn" style="display: none;">
+                ⏹️ 停止测试
+            </button>
+            
+            <div id="batchStatus"></div>
+            <div id="batchResults" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- 系统日志 -->
+        <div class="test-section">
+            <h3 class="section-title">📊 系统日志</h3>
+            <button onclick="clearLog()">🧹 清空日志</button>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let batchTestRunning = false;
+        let currentVoiceConfig = null;
+        
+        const batchTestTexts = [
+            "你好，我是礼明老师。",
+            "今天我们来学习新的内容。",
+            "这是一个很有趣的话题。",
+            "希望大家能够认真思考。",
+            "如果有问题，请随时提问。"
+        ];
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<span style="color: #4299e1;">[${timestamp}]</span> ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function showStatus(elementId, message, type = 'info') {
+            const statusDiv = document.getElementById(elementId);
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function setPresetText(text) {
+            document.getElementById('synthesisText').value = text;
+            log(`设置预设文本: "${text}"`);
+        }
+        
+        async function loadCurrentVoice() {
+            try {
+                log('获取当前语音配置...');
+                
+                const response = await fetch('/api/voice-config');
+                const config = await response.json();
+                
+                if (response.ok) {
+                    currentVoiceConfig = config;
+                    
+                    document.getElementById('currentVoiceId').textContent = config.voiceId || '-';
+                    document.getElementById('currentVoiceName').textContent = config.voiceName || '-';
+                    document.getElementById('currentPlatform').textContent = config.platform || '-';
+                    document.getElementById('voiceInfo').style.display = 'block';
+                    
+                    log(`当前语音配置: ${JSON.stringify(config, null, 2)}`);
+                } else {
+                    throw new Error('获取配置失败');
+                }
+            } catch (error) {
+                log(`获取语音配置失败: ${error.message}`);
+                showStatus('voiceInfo', '获取语音配置失败', 'error');
+            }
+        }
+        
+        async function synthesizeWithClone() {
+            const text = document.getElementById('synthesisText').value.trim();
+            if (!text) {
+                showStatus('synthesisStatus', '请输入要合成的文本', 'error');
+                return;
+            }
+            
+            try {
+                log(`开始使用克隆语音合成: "${text}"`);
+                showStatus('synthesisStatus', '正在使用克隆语音合成...', 'info');
+                
+                const response = await fetch('/api/synthesize-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: text,
+                        voiceId: currentVoiceConfig?.voiceId 
+                    })
+                });
+                
+                const result = await response.json();
+                log(`合成响应: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.success) {
+                    if (result.audio_url || result.audioUrl) {
+                        // 有音频文件的情况
+                        const audioUrl = result.audio_url || result.audioUrl;
+                        
+                        let statusMessage = '✅ 克隆语音合成成功！';
+                        let statusType = 'success';
+                        
+                        if (result.source === 'local_fallback') {
+                            statusMessage = '⚠️ 服务不可用，使用本地样本';
+                            statusType = 'warning';
+                        } else if (result.source === 'fallback') {
+                            statusMessage = '⚠️ 使用默认音色合成';
+                            statusType = 'warning';
+                        } else if (result.source === 'minimax') {
+                            statusMessage = '🎉 使用克隆语音真正合成成功！';
+                            statusType = 'success';
+                        }
+                        
+                        showStatus('synthesisStatus', `${statusMessage}<br><small>${result.message}</small>`, statusType);
+                        playAudio('synthesisPlayer', audioUrl);
+                        
+                    } else if (result.source === 'browser') {
+                        // 使用浏览器TTS的情况
+                        const textToSpeak = result.fallback_text || text;
+                        
+                        showStatus('synthesisStatus', `${result.message}<br><small>正在使用浏览器语音合成...</small>`, 'info');
+                        
+                        // 使用浏览器TTS
+                        if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                            utterance.lang = 'zh-CN';
+                            utterance.rate = 0.9;
+                            utterance.pitch = 1.0;
+                            
+                            utterance.onstart = () => {
+                                log('开始浏览器语音合成播放');
+                            };
+                            
+                            utterance.onend = () => {
+                                log('浏览器语音合成播放完成');
+                                showStatus('synthesisStatus', '✅ 浏览器语音合成完成', 'success');
+                            };
+                            
+                            utterance.onerror = (e) => {
+                                log(`浏览器语音合成失败: ${e.error}`);
+                                showStatus('synthesisStatus', '❌ 浏览器语音合成也失败了', 'error');
+                            };
+                            
+                            speechSynthesis.speak(utterance);
+                            log(`使用浏览器TTS播放: "${textToSpeak}"`);
+                        } else {
+                            showStatus('synthesisStatus', '❌ 浏览器不支持语音合成', 'error');
+                        }
+                    } else {
+                        throw new Error(result.message || '未知的合成结果');
+                    }
+                } else {
+                    // 处理失败情况
+                    let errorMessage = result.message || result.error || '合成失败';
+                    if (result.troubleshooting) {
+                        errorMessage += '<br><br><strong>故障排除信息:</strong><br>';
+                        for (const [key, value] of Object.entries(result.troubleshooting)) {
+                            errorMessage += `<small>${key}: ${value}</small><br>`;
+                        }
+                    }
+                    showStatus('synthesisStatus', errorMessage, 'error');
+                    throw new Error(result.message || result.error || '合成失败');
+                }
+                
+            } catch (error) {
+                log(`克隆语音合成失败: ${error.message}`);
+                showStatus('synthesisStatus', `合成失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function synthesizeWithDefault() {
+            const text = document.getElementById('synthesisText').value.trim();
+            if (!text) {
+                showStatus('synthesisStatus', '请输入要合成的文本', 'error');
+                return;
+            }
+            
+            try {
+                log(`开始使用默认语音合成: "${text}"`);
+                showStatus('synthesisStatus', '正在使用默认语音合成...', 'info');
+                
+                const response = await fetch('/api/synthesize-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: text,
+                        voiceId: 'female-yujie'  // 使用默认音色
+                    })
+                });
+                
+                const result = await response.json();
+                log(`默认语音合成响应: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.success && (result.audio_url || result.audioUrl)) {
+                    const audioUrl = result.audio_url || result.audioUrl;
+                    showStatus('synthesisStatus', '✅ 默认语音合成成功！', 'success');
+                    playAudio('synthesisPlayer', audioUrl);
+                } else {
+                    throw new Error(result.message || '合成失败');
+                }
+                
+            } catch (error) {
+                log(`默认语音合成失败: ${error.message}`);
+                showStatus('synthesisStatus', `合成失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function playAudio(audioElementId, audioUrl) {
+            const audioPlayer = document.getElementById(audioElementId);
+            audioPlayer.src = audioUrl;
+            audioPlayer.style.display = 'block';
+            
+            audioPlayer.onloadeddata = () => {
+                log(`音频加载完成: ${audioUrl}`);
+                audioPlayer.play().catch(err => {
+                    log(`自动播放失败: ${err.message}`);
+                });
+            };
+            
+            audioPlayer.onerror = (e) => {
+                log(`音频播放错误: ${e.message || '未知错误'}`);
+            };
+            
+            audioPlayer.onended = () => {
+                log('音频播放完成');
+            };
+        }
+        
+        async function runBatchTest() {
+            if (batchTestRunning) return;
+            
+            batchTestRunning = true;
+            document.getElementById('stopBatchBtn').style.display = 'inline-block';
+            
+            log('开始批量测试...');
+            showStatus('batchStatus', '正在进行批量测试...', 'info');
+            
+            const resultsDiv = document.getElementById('batchResults');
+            resultsDiv.innerHTML = '';
+            
+            for (let i = 0; i < batchTestTexts.length && batchTestRunning; i++) {
+                const text = batchTestTexts[i];
+                log(`批量测试 ${i + 1}/${batchTestTexts.length}: "${text}"`);
+                
+                try {
+                    const response = await fetch('/api/synthesize-speech', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            text: text,
+                            voiceId: currentVoiceConfig?.voiceId 
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'test-section';
+                    resultDiv.innerHTML = `
+                        <h4>测试 ${i + 1}: ${text}</h4>
+                        <p><strong>状态:</strong> ${result.success ? '✅ 成功' : '❌ 失败'}</p>
+                        <p><strong>来源:</strong> ${result.source || '未知'}</p>
+                        <p><strong>消息:</strong> ${result.message || '-'}</p>
+                        ${result.success && (result.audio_url || result.audioUrl) ? 
+                            `<audio controls src="${result.audio_url || result.audioUrl}" style="width: 100%; margin-top: 10px;"></audio>` : 
+                            ''}
+                    `;
+                    resultsDiv.appendChild(resultDiv);
+                    
+                    // 等待1秒再进行下一个测试
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                } catch (error) {
+                    log(`批量测试第${i + 1}项失败: ${error.message}`);
+                }
+            }
+            
+            batchTestRunning = false;
+            document.getElementById('stopBatchBtn').style.display = 'none';
+            showStatus('batchStatus', batchTestRunning ? '批量测试已停止' : '✅ 批量测试完成', 'success');
+            log('批量测试完成');
+        }
+        
+        function stopBatchTest() {
+            batchTestRunning = false;
+            document.getElementById('stopBatchBtn').style.display = 'none';
+            showStatus('batchStatus', '批量测试已停止', 'warning');
+            log('批量测试已手动停止');
+        }
+        
+        function clearResults() {
+            document.getElementById('batchResults').innerHTML = '';
+            document.getElementById('synthesisPlayer').style.display = 'none';
+            document.getElementById('synthesisStatus').innerHTML = '';
+            log('清空了所有结果');
+        }
+        
+        // 页面加载时自动获取语音配置
+        document.addEventListener('DOMContentLoaded', function() {
+            log('语音克隆合成测试页面已加载');
+            loadCurrentVoice();
+        });
+    </script>
+</body>
+</html> 
