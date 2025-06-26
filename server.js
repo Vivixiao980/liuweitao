@@ -105,6 +105,45 @@ const voiceUpload = multer({
 // 通用上传配置（向后兼容）
 const upload = knowledgeUpload;
 
+// MiniMax语音配置文件路径
+const minimaxVoiceConfigFile = path.join(__dirname, 'data', 'minimax-voice-config.json');
+
+// 语音配置管理函数
+function loadVoiceConfig() {
+  try {
+    if (fs.existsSync(minimaxVoiceConfigFile)) {
+      return fs.readJsonSync(minimaxVoiceConfigFile);
+    } else {
+      // 返回默认配置
+      const defaultConfig = {
+        platform: 'minimax',
+        apiKey: '',
+        groupId: '',
+        voiceClones: {}
+      };
+      saveVoiceConfig(defaultConfig);
+      return defaultConfig;
+    }
+  } catch (error) {
+    console.error('加载语音配置失败:', error);
+    return {
+      platform: 'minimax',
+      apiKey: '',
+      groupId: '',
+      voiceClones: {}
+    };
+  }
+}
+
+function saveVoiceConfig(config) {
+  try {
+    fs.writeJsonSync(minimaxVoiceConfigFile, config, { spaces: 2 });
+    console.log('语音配置已保存');
+  } catch (error) {
+    console.error('保存语音配置失败:', error);
+  }
+}
+
 // 礼明老师的知识库和核心设定
 const teacherKnowledge = {
   // 开场白
@@ -566,661 +605,350 @@ app.get('/api/voice-config', async (req, res) => {
   }
 });
 
-// MiniMax 语音合成API - 智能降级处理
-app.post('/api/text-to-speech', async (req, res) => {
-  try {
-    const { text, voiceId } = req.body;
-    
-    if (!text) {
-      return res.status(400).json({ success: false, error: '缺少文本内容' });
-    }
+// MiniMax API配置
+const MINIMAX_API_BASE = 'https://api.minimaxi.com';
 
-    // 读取MiniMax语音配置
-    let config = {};
-    if (fs.existsSync(voiceConfigFile)) {
-      config = await fs.readJson(voiceConfigFile);
-    }
-
-    // 如果没有配置API Key，直接返回降级信息
-    if (!config.apiKey) {
-      return res.status(503).json({ 
-        success: false, 
-        error: '语音服务未配置，请使用浏览器内置语音功能',
-        useWebSpeech: true,
-        fallback: true
-      });
-    }
-
-    // 尝试使用MiniMax API，如果失败则降级
+// MiniMax语音合成函数
+async function generateMiniMaxAudio(text, voiceConfig) {
     try {
-      const targetVoiceId = voiceId || config.voiceId || 'female-yujie';
-      
-      const response = await fetch('https://api.minimax.chat/v1/t2a_v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'speech-02-turbo',
-          text: text,
-          voice_id: targetVoiceId,
-          speed: 1.0,
-          volume: 1.0,
-          pitch: 0.0,
-          audio_setting: {
-            sample_rate: 24000,
-            bitrate: 128000,
-            format: 'mp3'
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log('MiniMax API错误:', response.status, errorText);
-        throw new Error(`MiniMax API错误: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.base_resp && result.base_resp.status_code !== 0) {
-        throw new Error(`MiniMax错误: ${result.base_resp.status_msg}`);
-      }
-
-      // 检查返回的音频数据
-      if (result.data && result.data.audio) {
-        const audioBuffer = Buffer.from(result.data.audio, 'base64');
-        res.set({
-          'Content-Type': 'audio/mpeg',
-          'Content-Length': audioBuffer.length,
-          'X-Voice-Source': 'minimax'
+        const response = await fetch(`${MINIMAX_API_BASE}/v1/text_to_speech`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                voice_id: voiceConfig.voiceId,
+                text: text,
+                model: "speech-01",
+                speed: 1.0,
+                vol: 1.0,
+                pitch: 0
+            })
         });
-        return res.send(audioBuffer);
-      } else {
-        throw new Error('未获取到音频数据');
-      }
-    } catch (minimaxError) {
-      console.log('MiniMax语音合成失败，降级到Web Speech:', minimaxError.message);
-      
-      // MiniMax失败，返回降级信息
-      return res.status(503).json({ 
-        success: false, 
-        error: 'MiniMax语音服务暂时不可用，请使用浏览器内置语音功能',
-        useWebSpeech: true,
-        fallback: true,
-        minimaxError: minimaxError.message
-      });
-    }
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`MiniMax错误: ${errorText}`);
+        }
 
-  } catch (error) {
-    console.error('MiniMax语音生成失败:', error);
-    res.status(500).json({ success: false, error: '语音生成失败: ' + error.message });
-  }
-});
+        const result = await response.json();
+        
+        if (result.data && result.data.audio_url) {
+            return result.data.audio_url;
+        } else {
+            throw new Error('MiniMax API返回格式异常');
+        }
+    } catch (error) {
+        throw new Error(`MiniMax语音合成失败: ${error.message}`);
+    }
+}
 
-// 上传语音样本
-app.post('/api/upload-voice', voiceUpload.single('voiceFile'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: '没有上传文件' });
-    }
-    
-    const fileInfo = {
-      filename: req.file.filename,
-      originalname: Buffer.from(req.file.originalname, 'latin1').toString('utf8'),
-      size: req.file.size,
-      uploadTime: new Date().toISOString(),
-      type: 'voice-sample'
-    };
-    
-    // 保存文件信息到上传记录
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    let uploadLog = [];
-    
-    if (fs.existsSync(uploadLogFile)) {
-      uploadLog = await fs.readJson(uploadLogFile);
-    }
-    
-    uploadLog.push(fileInfo);
-    await fs.writeJson(uploadLogFile, uploadLog, { spaces: 2 });
-    
-    res.json({ 
-      success: true, 
-      message: '语音样本上传成功',
-      file: fileInfo
-    });
-  } catch (error) {
-    console.error('语音上传失败:', error);
-    res.status(500).json({ success: false, error: '上传失败: ' + error.message });
-  }
-});
-
-// 上传语音样本（新的专用接口）
-app.post('/api/upload-voice-sample', voiceUpload.single('voiceFile'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: '没有上传文件' });
-    }
-    
-    const { sampleName, duration } = req.body;
-    
-    const fileInfo = {
-      filename: req.file.filename,
-      originalname: Buffer.from(req.file.originalname, 'latin1').toString('utf8'),
-      sampleName: sampleName || req.file.originalname,
-      size: req.file.size,
-      duration: duration ? parseInt(duration) : null,
-      uploadTime: new Date().toISOString(),
-      type: 'voice-sample'
-    };
-    
-    // 保存文件信息到上传记录
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    let uploadLog = [];
-    
-    if (fs.existsSync(uploadLogFile)) {
-      uploadLog = await fs.readJson(uploadLogFile);
-    }
-    
-    uploadLog.push(fileInfo);
-    await fs.writeJson(uploadLogFile, uploadLog, { spaces: 2 });
-    
-    res.json({ 
-      success: true, 
-      message: `语音样本"${fileInfo.sampleName}"上传成功`,
-      file: fileInfo
-    });
-  } catch (error) {
-    console.error('语音样本上传失败:', error);
-    res.status(500).json({ success: false, error: '上传失败: ' + error.message });
-  }
-});
-
-// 获取语音样本列表
-app.get('/api/voice-samples', async (req, res) => {
-  try {
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    
-    if (!fs.existsSync(uploadLogFile)) {
-      return res.json({
-        success: true,
-        samples: []
-      });
-    }
-    
-    const uploadLog = await fs.readJson(uploadLogFile);
-    // 只返回语音样本文件
-    const voiceSamples = uploadLog.filter(file => file.type === 'voice-sample');
-    
-    res.json({
-      success: true,
-      samples: voiceSamples
-    });
-  } catch (error) {
-    console.error('获取语音样本失败:', error);
-    res.status(500).json({
-      success: false,
-      error: '获取语音样本失败'
-    });
-  }
-});
-
-// 删除语音样本
-app.delete('/api/voice-samples/:filename', async (req, res) => {
-  try {
-    const { filename } = req.params;
-    
-    // 删除文件
-    const filePath = path.join(__dirname, 'uploads', filename);
-    if (fs.existsSync(filePath)) {
-      await fs.remove(filePath);
-    }
-    
-    // 从记录中移除
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    if (fs.existsSync(uploadLogFile)) {
-      let uploadLog = await fs.readJson(uploadLogFile);
-      uploadLog = uploadLog.filter(file => file.filename !== filename);
-      await fs.writeJson(uploadLogFile, uploadLog, { spaces: 2 });
-    }
-    
-    res.json({
-      success: true,
-      message: '语音样本删除成功'
-    });
-  } catch (error) {
-    console.error('删除语音样本失败:', error);
-    res.status(500).json({
-      success: false,
-      error: '删除失败: ' + error.message
-    });
-  }
-});
-
-// 创建语音克隆
-app.post('/api/create-voice-clone', async (req, res) => {
-  try {
-    const { cloneName, description } = req.body;
-    
-    if (!cloneName) {
-      return res.status(400).json({ success: false, error: '请提供语音克隆名称' });
-    }
-    
-    // 检查是否有语音样本
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    if (!fs.existsSync(uploadLogFile)) {
-      return res.status(400).json({ success: false, error: '请先上传语音样本' });
-    }
-    
-    const uploadLog = await fs.readJson(uploadLogFile);
-    const voiceSamples = uploadLog.filter(file => file.type === 'voice-sample');
-    
-    if (voiceSamples.length === 0) {
-      return res.status(400).json({ success: false, error: '请先上传语音样本' });
-    }
-
-    // 读取MiniMax配置
-    let config = {};
-    if (fs.existsSync(voiceConfigFile)) {
-      config = await fs.readJson(voiceConfigFile);
-    }
-
-    if (!config.apiKey) {
-      return res.status(400).json({ success: false, error: '请先配置MiniMax API Key' });
-    }
-
-    // 尝试调用真实的MiniMax语音克隆API
+// MiniMax语音克隆函数
+async function createMiniMaxVoiceClone(audioFiles, voiceConfig) {
     try {
-      // 使用最新的语音样本文件
-      const latestSample = voiceSamples[voiceSamples.length - 1];
-      const sampleFilePath = path.join(__dirname, 'uploads', latestSample.filename);
-      
-      if (!fs.existsSync(sampleFilePath)) {
-        throw new Error('语音样本文件不存在');
-      }
+        console.log('开始语音克隆流程，文件数量:', audioFiles.length);
+        console.log('使用API配置:', {
+            groupId: voiceConfig.groupId,
+            hasApiKey: !!voiceConfig.apiKey
+        });
+        
+        // 1. 通过File接口上传文件，得到file_id（按官方示例添加purpose参数）
+        const uploadedFileIds = [];
+        for (const file of audioFiles) {
+            console.log(`上传文件: ${file.originalname}, 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+            
+            const formData = new FormData();
+            formData.append('file', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+            // 根据官方示例添加purpose参数
+            formData.append('purpose', 'voice_clone');
 
-      // 创建FormData上传文件
-      const FormData = require('form-data');
-      const form = new FormData();
-      
-      // 读取音频文件
-      const audioBuffer = fs.readFileSync(sampleFilePath);
-      form.append('audio_file', audioBuffer, {
-        filename: latestSample.originalname,
-        contentType: 'audio/mpeg'
-      });
-      
-      form.append('voice_name', cloneName);
-      form.append('voice_description', description || '');
+            const uploadResponse = await fetch(`https://api.minimaxi.com/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${voiceConfig.apiKey}`
+                },
+                body: formData
+            });
 
-      // 调用MiniMax语音克隆API
-      const response = await fetch('https://api.minimax.chat/v1/voice_clone', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
-          ...form.getHeaders()
-        },
-        body: form
-      });
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                console.error(`文件上传失败: ${file.originalname}`, uploadResponse.status, errorText);
+                throw new Error(`文件上传失败: ${uploadResponse.status} - ${errorText}`);
+            }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('MiniMax语音克隆失败:', errorText);
-        throw new Error(`MiniMax API错误: ${response.status} - ${errorText}`);
-      }
+            const uploadResult = await uploadResponse.json();
+            console.log(`文件上传响应:`, JSON.stringify(uploadResult, null, 2));
+            
+            // 根据官方示例，file_id在file.file_id中
+            const fileId = uploadResult.file?.file_id || uploadResult.data?.file_id;
+            if (!fileId) {
+                throw new Error(`无法获取file_id，响应结构: ${JSON.stringify(uploadResult)}`);
+            }
+            
+            console.log(`文件上传成功: ${file.originalname}, file_id: ${fileId}`);
+            uploadedFileIds.push(fileId);
+        }
 
-      const result = await response.json();
-      
-      if (result.base_resp && result.base_resp.status_code !== 0) {
-        throw new Error(`MiniMax错误: ${result.base_resp.status_msg}`);
-      }
+        // 2. 生成自定义voice_id
+        const customVoiceId = `liming_voice_${Date.now()}`;
+        console.log('生成自定义voice_id:', customVoiceId);
 
-      // 保存真实的语音克隆信息
-      const cloneId = result.data?.voice_id || `clone_${Date.now()}`;
-      
-      // 保存语音克隆信息
-      const clonesFile = path.join(__dirname, 'data', 'voice-clones.json');
-      let clones = [];
-      
-      if (fs.existsSync(clonesFile)) {
-        clones = await fs.readJson(clonesFile);
-      }
-      
-      const newClone = {
-        id: cloneId,
-        name: cloneName,
-        description: description || '',
-        voice_id: cloneId,
-        created_time: new Date().toISOString(),
-        samples_count: voiceSamples.length,
-        status: 'ready',
-        minimax_voice_id: result.data?.voice_id,
-        is_real_clone: true
-      };
-      
-      clones.push(newClone);
-      await fs.writeJson(clonesFile, clones, { spaces: 2 });
-      
-      // 设置为默认语音
-      config.voiceId = cloneId;
-      config.voiceName = cloneName;
-      config.platform = 'custom-clone';
-      config.minimaxVoiceId = result.data?.voice_id;
-      await fs.writeJson(voiceConfigFile, config, { spaces: 2 });
-      
-      res.json({
-        success: true,
-        message: `真实语音克隆"${cloneName}"创建成功！已设为默认语音。`,
-        clone: newClone
-      });
+        // 3. 调用语音克隆接口，使用file_id和自定义voice_id（按官方示例修改参数名）
+        const clonePayload = {
+            voice_id: customVoiceId,
+            file_id: uploadedFileIds[0] // 官方示例使用单个file_id
+        };
+        
+        console.log('调用语音克隆接口，参数:', JSON.stringify(clonePayload, null, 2));
 
-    } catch (apiError) {
-      console.error('MiniMax语音克隆API调用失败:', apiError);
-      
-      // 如果API调用失败，创建本地模拟克隆作为备选方案
-      const cloneId = `clone_${Date.now()}`;
-      
-      // 保存语音克隆信息
-      const clonesFile = path.join(__dirname, 'data', 'voice-clones.json');
-      let clones = [];
-      
-      if (fs.existsSync(clonesFile)) {
-        clones = await fs.readJson(clonesFile);
-      }
-      
-      const newClone = {
-        id: cloneId,
-        name: cloneName,
-        description: description || '',
-        voice_id: cloneId,
-        created_time: new Date().toISOString(),
-        samples_count: voiceSamples.length,
-        status: 'ready',
-        is_real_clone: false,
-        fallback_reason: 'MiniMax API不可用，使用本地样本播放'
-      };
-      
-      clones.push(newClone);
-      await fs.writeJson(clonesFile, clones, { spaces: 2 });
-      
-      // 设置为默认语音
-      config.voiceId = cloneId;
-      config.voiceName = cloneName;
-      config.platform = 'custom-clone';
-      await fs.writeJson(voiceConfigFile, config, { spaces: 2 });
-      
-      res.json({
-        success: true,
-        message: `语音克隆"${cloneName}"已创建（使用本地样本）。MiniMax API暂时不可用，将使用原始样本播放。`,
-        clone: newClone,
-        warning: 'MiniMax API不可用，使用本地样本作为备选方案'
-      });
+        const cloneResponse = await fetch(`https://api.minimaxi.com/v1/voice_clone?GroupId=${voiceConfig.groupId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(clonePayload)
+        });
+
+        if (!cloneResponse.ok) {
+            const errorText = await cloneResponse.text();
+            console.error('语音克隆API调用失败:', cloneResponse.status, errorText);
+            throw new Error(`语音克隆失败: ${cloneResponse.status} - ${errorText}`);
+        }
+
+        const cloneResult = await cloneResponse.json();
+        console.log('语音克隆成功:', JSON.stringify(cloneResult, null, 2));
+        
+        // 返回自定义的voice_id，这个ID将用于后续的语音合成
+        return customVoiceId;
+    } catch (error) {
+        console.error('语音克隆流程失败:', error);
+        throw new Error(`语音克隆失败: ${error.message}`);
     }
-    
-  } catch (error) {
-    console.error('创建语音克隆失败:', error);
-    res.status(500).json({
-      success: false,
-      error: '创建失败: ' + error.message
-    });
-  }
+}
+
+// 语音生成路由
+app.post('/api/generate-speech', async (req, res) => {
+    try {
+        const { text } = req.body;
+        
+        if (!text) {
+            return res.status(400).json({ error: '缺少文本内容' });
+        }
+
+        // 读取语音配置
+        const voiceConfig = loadVoiceConfig();
+        
+        if (!voiceConfig) {
+            console.log('MiniMax语音合成失败，降级到Web Speech: 配置文件未找到');
+            return res.json({ 
+                success: true, 
+                audioUrl: null,
+                message: '使用浏览器内置语音合成'
+            });
+        }
+
+        try {
+            const audioUrl = await generateMiniMaxAudio(text, voiceConfig);
+            res.json({ 
+                success: true, 
+                audioUrl: audioUrl,
+                message: '语音生成成功'
+            });
+        } catch (error) {
+            console.log('MiniMax语音合成失败，降级到Web Speech:', error.message);
+            res.json({ 
+                success: true, 
+                audioUrl: null,
+                message: '使用浏览器内置语音合成'
+            });
+        }
+    } catch (error) {
+        console.error('语音生成失败:', error);
+        res.status(500).json({ error: '语音生成失败' });
+    }
+});
+
+// 语音克隆路由
+app.post('/api/clone-voice', voiceUpload.array('voiceSamples', 10), async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: '请上传音频文件' });
+        }
+
+        // 读取语音配置
+        const voiceConfig = loadVoiceConfig();
+        
+        if (!voiceConfig) {
+            return res.status(400).json({ error: 'MiniMax配置未找到' });
+        }
+
+        try {
+            const voiceId = await createMiniMaxVoiceClone(req.files, voiceConfig);
+            
+            // 更新配置文件
+            voiceConfig.voiceId = voiceId;
+            voiceConfig.voiceName = "礼明（克隆）";
+            saveVoiceConfig(voiceConfig);
+            
+            res.json({ 
+                success: true, 
+                voiceId: voiceId,
+                message: '语音克隆成功'
+            });
+        } catch (error) {
+            console.error('MiniMax语音克隆API调用失败:', error);
+            
+            // 创建本地克隆记录
+            const localCloneId = `clone_${Date.now()}`;
+            voiceConfig.voiceId = localCloneId;
+            voiceConfig.voiceName = "礼明（本地克隆）";
+            voiceConfig.platform = 'custom-clone';
+            saveVoiceConfig(voiceConfig);
+            
+            res.json({ 
+                success: true, 
+                voiceId: localCloneId,
+                message: '已创建本地语音克隆记录，将使用本地样本播放'
+            });
+        }
+    } catch (error) {
+        console.error('语音克隆失败:', error);
+        res.status(500).json({ error: '语音克隆失败' });
+    } finally {
+        // 清理上传的文件
+        if (req.files) {
+            req.files.forEach(file => {
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error('删除临时文件失败:', err);
+                });
+            });
+        }
+    }
 });
 
 // 获取语音克隆列表
 app.get('/api/voice-clones', async (req, res) => {
-  try {
-    const clonesFile = path.join(__dirname, 'data', 'voice-clones.json');
-    
-    if (!fs.existsSync(clonesFile)) {
-      return res.json({
-        success: true,
-        clones: []
-      });
-    }
-    
-    const clones = await fs.readJson(clonesFile);
-    
-    res.json({
-      success: true,
-      clones: clones
-    });
-  } catch (error) {
-    console.error('获取语音克隆失败:', error);
-    res.status(500).json({
-      success: false,
-      error: '获取语音克隆失败'
-    });
-  }
-});
-
-// 获取MiniMax语音列表
-app.get('/api/voices', async (req, res) => {
-  try {
-    // MiniMax预设语音列表（根据官方文档）
-    const predefinedVoices = [
-      { voice_id: 'female-yujie', name: '御姐音（女）', category: '女声', language: 'zh' },
-      { voice_id: 'female-chengshu', name: '成熟女性', category: '女声', language: 'zh' },
-      { voice_id: 'female-tianmei', name: '甜美女声', category: '女声', language: 'zh' },
-      { voice_id: 'female-wennuan', name: '温暖女声', category: '女声', language: 'zh' },
-      { voice_id: 'male-qinse', name: '青涩男声', category: '男声', language: 'zh' },
-      { voice_id: 'male-chenwen', name: '沉稳男声', category: '男声', language: 'zh' },
-      { voice_id: 'male-chunhou', name: '醇厚男声', category: '男声', language: 'zh' },
-      { voice_id: 'presenter_male', name: '主播男声', category: '男声', language: 'zh' },
-      { voice_id: 'presenter_female', name: '主播女声', category: '女声', language: 'zh' },
-      { voice_id: 'audiobook_male_1', name: '有声书男声1', category: '男声', language: 'zh' },
-      { voice_id: 'audiobook_male_2', name: '有声书男声2', category: '男声', language: 'zh' },
-      { voice_id: 'audiobook_female_1', name: '有声书女声1', category: '女声', language: 'zh' },
-      { voice_id: 'audiobook_female_2', name: '有声书女声2', category: '女声', language: 'zh' }
-    ];
-    
-    // 暂时只返回预设语音，避免API认证问题
-    const allVoices = predefinedVoices;
-    res.json({ success: true, voices: allVoices });
-  } catch (error) {
-    console.error('获取MiniMax语音列表失败:', error);
-    res.status(500).json({ success: false, error: '获取语音列表失败: ' + error.message });
-  }
-});
-
-// MiniMax语音克隆（暂时禁用，使用预设语音）
-app.post('/api/create-voice', voiceUpload.array('voiceSamples', 5), async (req, res) => {
-  try {
-    const { voiceName, voiceDescription } = req.body;
-    
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, error: '请上传语音样本文件' });
-    }
-    
-    let config = {};
-    if (fs.existsSync(voiceConfigFile)) {
-      config = await fs.readJson(voiceConfigFile);
-    }
-    
-    if (!config.apiKey) {
-      return res.status(400).json({ success: false, error: '请先配置MiniMax API Key' });
-    }
-    
-    if (!config.groupId) {
-      return res.status(400).json({ success: false, error: '请先配置MiniMax Group ID' });
-    }
-    
-    // 检查文件大小
-    const audioFile = req.files[0];
-    if (audioFile.size > 11 * 1024 * 1024) {
-      return res.status(400).json({ 
-        success: false, 
-        error: `文件过大: ${(audioFile.size / 1024 / 1024).toFixed(1)}MB，MiniMax限制为11MB以内` 
-      });
-    }
-    
-    // 保存文件信息但暂时不调用API
-    const fileInfo = {
-      filename: audioFile.filename,
-      originalname: Buffer.from(audioFile.originalname, 'latin1').toString('utf8'),
-      size: audioFile.size,
-      uploadTime: new Date().toISOString(),
-      type: 'voice-sample'
-    };
-    
-    // 保存文件信息到上传记录
-    const uploadLogFile = path.join(__dirname, 'data', 'uploads.json');
-    let uploadLog = [];
-    
-    if (fs.existsSync(uploadLogFile)) {
-      uploadLog = await fs.readJson(uploadLogFile);
-    }
-    
-    uploadLog.push(fileInfo);
-    await fs.writeJson(uploadLogFile, uploadLog, { spaces: 2 });
-    
-    // 暂时返回成功，但使用预设语音ID
-    const customVoiceId = `custom_${Date.now()}`;
-    
-    // 更新配置使用预设语音
-    config.voiceId = 'female-yujie'; // 使用预设的御姐音
-    config.voiceName = '御姐音（女）- 推荐';
-    await fs.writeJson(voiceConfigFile, config, { spaces: 2 });
-    
-    res.json({ 
-      success: true, 
-      message: '语音文件上传成功！当前使用推荐的预设语音。',
-      voiceId: config.voiceId,
-      voice: {
-        voice_id: config.voiceId,
-        name: config.voiceName,
-        status: 'ready'
-      },
-      note: '语音克隆功能正在调试中，暂时使用高质量预设语音'
-    });
-  } catch (error) {
-    console.error('语音上传失败:', error);
-    res.status(500).json({ success: false, error: '上传失败: ' + error.message });
-  }
-});
-
-// MiniMax语音合成API
-app.post('/api/minimax/synthesize', async (req, res) => {
-  try {
-    const { text, voiceId } = req.body;
-    
-    if (!text) {
-      return res.status(400).json({ success: false, error: '请提供要合成的文本' });
-    }
-    
-    let config = {};
-    if (fs.existsSync(voiceConfigFile)) {
-      config = await fs.readJson(voiceConfigFile);
-    }
-    
-    if (!config.apiKey) {
-      return res.status(400).json({ success: false, error: '请先配置MiniMax API Key' });
-    }
-    
-    // 确定使用的语音ID
-    let targetVoiceId = voiceId || config.voiceId || 'female-yujie';
-    
-    // 如果是自定义语音克隆，使用真实的MiniMax语音ID
-    if (config.platform === 'custom-clone' && config.minimaxVoiceId) {
-      targetVoiceId = config.minimaxVoiceId;
-    }
-    
-    const requestBody = {
-      model: 'speech-02-turbo',
-      text: text,
-      voice_id: targetVoiceId,
-      speed: 1.0,
-      volume: 1.0,
-      pitch: 0.0,
-      audio_setting: {
-        sample_rate: 24000,
-        bitrate: 128000,
-        format: 'mp3'
-      }
-    };
-    
-    const response = await fetch('https://api.minimax.chat/v1/t2a_v2', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`MiniMax API错误: ${response.status} - ${errorText}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.base_resp && result.base_resp.status_code !== 0) {
-      throw new Error(`MiniMax错误: ${result.base_resp.status_msg}`);
-    }
-    
-    // 检查返回的音频数据
-    if (!result.data || !result.data.audio) {
-      throw new Error('未获取到音频数据');
-    }
-    
-    // 如果返回的是base64编码的音频
-    if (typeof result.data.audio === 'string') {
-      const audioBuffer = Buffer.from(result.data.audio, 'base64');
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length,
-        'X-Voice-Clone': config.platform === 'custom-clone' ? 'true' : 'false'
-      });
-      res.send(audioBuffer);
-    } else {
-      // 如果返回的是URL
-      const audioResponse = await fetch(result.data.audio);
-      const audioBuffer = await audioResponse.buffer();
-      
-      // 读取配置以设置响应头
-      let config = {};
-      try {
-        if (fs.existsSync(voiceConfigFile)) {
-          config = await fs.readJson(voiceConfigFile);
-        }
-      } catch (configError) {
-        console.error('读取配置失败:', configError);
-      }
-      
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length,
-        'X-Voice-Clone': config.platform === 'custom-clone' ? 'true' : 'false'
-      });
-      res.send(audioBuffer);
-    }
-  } catch (error) {
-    console.error('MiniMax语音合成失败:', error);
-    
-    // 尝试读取配置以判断是否为语音克隆失败
     try {
-      let config = {};
-      if (fs.existsSync(voiceConfigFile)) {
-        config = await fs.readJson(voiceConfigFile);
-      }
-      
-      // 如果是自定义语音克隆失败，返回特殊状态让前端降级处理
-      if (config && config.platform === 'custom-clone') {
-        return res.status(503).json({ 
-          success: false, 
-          error: '语音克隆服务暂时不可用',
-          fallback: true,
-          message: '将使用浏览器语音合成作为备选方案'
-        });
-      }
-    } catch (configError) {
-      console.error('读取配置失败:', configError);
+        const voiceConfig = loadVoiceConfig();
+        
+        if (!voiceConfig) {
+            return res.status(400).json({ error: 'MiniMax配置未找到' });
+        }
+
+        try {
+            // 调用MiniMax API获取语音克隆列表
+            const response = await fetch(`${MINIMAX_API_BASE}/v1/voice_clone/list?GroupId=${voiceConfig.groupId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('获取语音克隆列表失败:', response.status, errorText);
+                throw new Error(`获取列表失败: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('语音克隆列表:', JSON.stringify(result, null, 2));
+
+            res.json({
+                success: true,
+                voices: result.data || [],
+                message: '获取语音克隆列表成功'
+            });
+        } catch (error) {
+            console.error('获取语音克隆列表失败:', error);
+            // 返回本地配置的语音信息
+            const localVoices = [];
+            if (voiceConfig.voiceId && voiceConfig.voiceName) {
+                localVoices.push({
+                    voice_id: voiceConfig.voiceId,
+                    voice_name: voiceConfig.voiceName,
+                    status: voiceConfig.platform === 'custom-clone' ? 'local' : 'unknown'
+                });
+            }
+            
+            res.json({
+                success: true,
+                voices: localVoices,
+                message: '使用本地语音配置'
+            });
+        }
+    } catch (error) {
+        console.error('获取语音克隆列表失败:', error);
+        res.status(500).json({ error: '获取语音克隆列表失败' });
     }
-    
-    res.status(500).json({ success: false, error: '语音合成失败: ' + error.message });
-  }
+});
+
+// 语音合成路由 - 修复config未定义错误
+app.post('/api/synthesize-speech', async (req, res) => {
+    try {
+        const { text } = req.body;
+        
+        if (!text) {
+            return res.status(400).json({ error: '缺少文本内容' });
+        }
+
+        // 读取语音配置
+        const voiceConfig = loadVoiceConfig();
+        
+        if (!voiceConfig) {
+            return res.status(400).json({ error: 'MiniMax配置未找到' });
+        }
+
+        try {
+            const audioUrl = await generateMiniMaxAudio(text, voiceConfig);
+            res.json({ 
+                success: true, 
+                audioUrl: audioUrl,
+                message: '语音合成成功'
+            });
+        } catch (error) {
+            console.error('MiniMax语音合成失败:', error);
+            
+            // 检查是否是自定义克隆
+            if (voiceConfig && voiceConfig.platform === 'custom-clone') {
+                // 使用本地样本
+                const sampleFiles = fs.readdirSync('./uploads').filter(file => 
+                    file.endsWith('.mp3') || file.endsWith('.wav')
+                );
+                
+                if (sampleFiles.length > 0) {
+                    const sampleFile = sampleFiles[0];
+                    const audioUrl = `/uploads/${sampleFile}`;
+                    
+                    res.json({ 
+                        success: true, 
+                        audioUrl: audioUrl,
+                        message: '使用本地语音样本'
+                    });
+                } else {
+                    res.json({ 
+                        success: true, 
+                        audioUrl: null,
+                        message: '使用浏览器内置语音合成'
+                    });
+                }
+            } else {
+                res.json({ 
+                    success: true, 
+                    audioUrl: null,
+                    message: '使用浏览器内置语音合成'
+                });
+            }
+        }
+    } catch (error) {
+        console.error('语音合成失败:', error);
+        res.status(500).json({ error: '语音合成失败' });
+    }
 });
 
 // Socket.IO 连接处理

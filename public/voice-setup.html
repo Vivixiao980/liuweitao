@@ -794,7 +794,7 @@ async function speakText(text) {
             createButton.parentNode.insertBefore(statusDiv, createButton.nextSibling);
             
             try {
-                const response = await fetch('/api/create-voice', {
+                const response = await fetch('/api/clone-voice', {
                     method: 'POST',
                     body: formData
                 });
