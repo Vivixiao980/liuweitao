@@ -1,0 +1,22 @@
+[
+  {
+    "id": "clone_1750927394175",
+    "name": "礼明",
+    "description": "基于用户上传样本的语音克隆",
+    "voice_id": "clone_1750927394175",
+    "created_time": "2025-06-26T08:43:14.175Z",
+    "samples_count": 1,
+    "status": "ready"
+  },
+  {
+    "id": "clone_1750930458384",
+    "name": "礼明",
+    "description": "基于用户上传样本的语音克隆",
+    "voice_id": "clone_1750930458384",
+    "created_time": "2025-06-26T09:34:18.385Z",
+    "samples_count": 2,
+    "status": "ready",
+    "is_real_clone": false,
+    "fallback_reason": "MiniMax API不可用，使用本地样本播放"
+  }
+]

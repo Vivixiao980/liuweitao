@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>与礼明老师对话</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="teacher-info">
+                <div class="teacher-avatar">
+                    <img src="teacher-avatar.svg" alt="礼明老师" id="teacherImage">
+                </div>
+                <div class="teacher-details">
+                    <h1>礼明老师</h1>
+                    <p class="teacher-status">
+                        <span class="status-dot online"></span>
+                        在线答疑
+                    </p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary" onclick="exportConversations()">
+                    <i class="fa fa-download"></i>
+                    导出记录
+                </button>
+                <button class="btn-secondary" onclick="window.open('/admin.html', '_blank')">
+                    <i class="fa fa-cog"></i>
+                    管理后台
+                </button>
+                <button class="btn-secondary" onclick="window.open('/knowledge-upload.html', '_blank')">
+                    <i class="fa fa-upload"></i>
+                    上传知识库
+                </button>
+                <button class="btn-secondary" onclick="window.open('/voice-clone-upload.html', '_blank')">
+                    <i class="fa fa-microphone"></i>
+                    语音克隆
+                </button>
+                <button class="btn-secondary" onclick="window.open('/siliconflow-setup.html', '_blank')">
+                    <i class="fa fa-robot"></i>
+                    SiliconFlow AI
+                </button>
+                <button class="btn-secondary" onclick="window.open('/voice-settings.html', '_blank')">
+                    <i class="fa fa-volume-up"></i>
+                    语音设置
+                </button>
+                <button class="btn-secondary" onclick="toggleVoice()" id="voiceToggle">
+                    <i class="fa fa-volume-up"></i>
+                    语音开启
+                </button>
+                <button class="btn-secondary" onclick="window.open('/quick-test.html', '_blank')">
+                    <i class="fa fa-vial"></i>
+                    快速测试
+                </button>
+                <button class="btn-secondary" onclick="window.open('/api-test.html', '_blank')">
+                    <i class="fa fa-bug"></i>
+                    API测试
+                </button>
+                <button class="btn-secondary" onclick="window.open('/system-status.html', '_blank')">
+                    <i class="fa fa-heartbeat"></i>
+                    系统状态
+                </button>
+                <button class="btn-secondary" onclick="window.open('/minimax-diagnostic.html', '_blank')">
+                    <i class="fa fa-stethoscope"></i>
+                    MiniMax诊断
+                </button>
+            </div>
+        </header>
+
+        <!-- 聊天区域 -->
+        <main class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message teacher-message">
+                    <div class="message-avatar">
+                        <img src="teacher-avatar.svg" alt="礼明老师">
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            你好，我是礼明，打过胜仗、愿意分享
+                        </div>
+                        <div class="message-time" id="welcomeTime"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="输入你的问题..."
+                        rows="1"
+                        maxlength="1000"
+                    ></textarea>
+                    <button class="send-button" onclick="sendMessage()" id="sendButton">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-footer">
+                    <span class="char-counter" id="charCounter">0/1000</span>
+                    <span class="tip">按 Enter 发送，Shift+Enter 换行</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- 加载指示器 -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>礼明老师正在思考...</p>
+            </div>
+        </div>
+
+        <!-- 统计面板 -->
+        <div class="stats-panel" id="statsPanel">
+            <div class="stats-content">
+                <h3>对话统计</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalChats">0</span>
+                        <span class="stat-label">总对话数</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalUsers">0</span>
+                        <span class="stat-label">用户数</span>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="toggleStats()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="audioPlayer" style="display: none;"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html> 

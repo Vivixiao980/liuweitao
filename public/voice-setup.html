@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>礼明老师 - 语音克隆设置</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .voice-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .step-card {
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .api-config {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: monospace;
+            margin-bottom: 1rem;
+        }
+        
+        .platform-card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .platform-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .platform-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .platform-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .platform-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success-box {
+            background: #f0fdf4;
+            border: 1px solid #22c55e;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .voice-sample {
+            background: #f8fafc;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .upload-voice {
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            margin: 0.5rem;
+        }
+        
+        .test-voice {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+        }
+    </style>
+</head>
+<body>
+    <div class="voice-container">
+        <a href="/" class="back-link">
+            <i class="fa fa-arrow-left"></i>
+            返回对话界面
+        </a>
+        
+        <div class="upload-header">
+            <h1>🎙️ 礼明老师语音克隆设置</h1>
+            <p>配置语音克隆功能，让AI用礼明老师的声音回复</p>
+        </div>
+
+        <!-- 第一步：选择语音平台 -->
+        <div class="step-card">
+            <h2><span class="step-number">1</span>选择语音克隆平台</h2>
+            
+            <div class="platform-card" onclick="selectPlatform('elevenlabs')">
+                <div class="platform-header">
+                    <h3>🚀 ElevenLabs (推荐)</h3>
+                    <span class="platform-badge">最佳效果</span>
+                </div>
+                <p>• 语音质量最高，支持中文<br>
+                • 只需3-5分钟语音样本<br>
+                • 免费额度：10,000字符/月<br>
+                • 付费：$5-22/月</p>
+                <div class="warning-box">
+                    <strong>注意：</strong>需要科学上网访问
+                </div>
+            </div>
+
+            <div class="platform-card" onclick="selectPlatform('azure')">
+                <div class="platform-header">
+                    <h3>☁️ Azure Speech Services</h3>
+                    <span class="platform-badge">企业级</span>
+                </div>
+                <p>• 微软官方服务，稳定可靠<br>
+                • 支持自定义神经语音<br>
+                • 免费额度：50万字符/月<br>
+                • 需要较多训练数据</p>
+            </div>
+
+            <div class="platform-card" onclick="selectPlatform('xunfei')">
+                <div class="platform-header">
+                    <h3>🇨🇳 讯飞语音</h3>
+                    <span class="platform-badge">国产</span>
+                </div>
+                <p>• 国内服务，网络访问快<br>
+                • 中文效果优秀<br>
+                • 有免费额度<br>
+                • 支持个性化定制</p>
+            </div>
+        </div>
+
+        <!-- 第二步：API配置 -->
+        <div class="step-card" id="apiConfig" style="display: none;">
+            <h2><span class="step-number">2</span>配置API密钥</h2>
+            
+            <div id="elevenlabsConfig" style="display: none;">
+                <h3>ElevenLabs API配置</h3>
+                <div class="api-config">
+                    <label>API Key:</label>
+                    <input type="password" class="config-input" id="elevenlabsKey" placeholder="输入您的ElevenLabs API Key">
+                    
+                    <div class="warning-box">
+                        <strong>获取API Key步骤：</strong><br>
+                        1. 访问 <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a><br>
+                        2. 注册账号并登录<br>
+                        3. 进入 Profile → API Keys<br>
+                        4. 复制API Key到上方输入框
+                    </div>
+                </div>
+            </div>
+
+            <div id="azureConfig" style="display: none;">
+                <h3>Azure Speech Services配置</h3>
+                <div class="api-config">
+                    <label>Subscription Key:</label>
+                    <input type="password" class="config-input" id="azureKey" placeholder="输入Azure订阅密钥">
+                    
+                    <label>Region:</label>
+                    <input type="text" class="config-input" id="azureRegion" placeholder="例如: eastus" value="eastus">
+                </div>
+            </div>
+
+            <div id="xunfeiConfig" style="display: none;">
+                <h3>讯飞语音配置</h3>
+                <div class="api-config">
+                    <label>AppID:</label>
+                    <input type="text" class="config-input" id="xunfeiAppId" placeholder="输入讯飞AppID">
+                    
+                    <label>API Secret:</label>
+                    <input type="password" class="config-input" id="xunfeiSecret" placeholder="输入API Secret">
+                    
+                    <label>API Key:</label>
+                    <input type="password" class="config-input" id="xunfeiKey" placeholder="输入API Key">
+                </div>
+            </div>
+
+            <button class="upload-voice" onclick="saveApiConfig()">保存API配置</button>
+        </div>
+
+        <!-- 第三步：选择语音 -->
+        <div class="step-card" id="voiceSample" style="display: none;">
+            <h2><span class="step-number">3</span>选择语音模式</h2>
+            
+            <div class="success-box">
+                <strong>🎉 付费订阅已激活！</strong><br>
+                您现在可以使用语音克隆功能创建礼明老师的专属语音。<br>
+                也可以继续使用预设语音进行快速测试。
+            </div>
+
+            <!-- 预设语音选择 -->
+            <div class="voice-sample">
+                <i class="fa fa-volume-up" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                <h3>使用预设语音（推荐）</h3>
+                <p>选择一个合适的中文语音来模拟礼明老师</p>
+                
+                <div id="voiceSelectContainer" style="margin: 1rem 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">选择语音：</label>
+                    <select id="voiceSelect" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem;">
+                        <option value="">正在加载语音列表...</option>
+                    </select>
+                </div>
+                
+                <button class="upload-voice" onclick="setPresetVoice()" style="background: #22c55e;">
+                    <i class="fa fa-check"></i> 设置为默认语音
+                </button>
+                <button class="upload-voice" onclick="testSelectedVoice()">
+                    <i class="fa fa-play"></i> 试听语音
+                </button>
+            </div>
+
+            <!-- 语音克隆选项（付费用户已启用） -->
+            <div class="voice-sample" style="margin-top: 2rem;">
+                <i class="fa fa-magic" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                <h3>🎉 语音克隆（已启用）</h3>
+                <p>上传礼明老师的语音样本创建专属语音</p>
+                
+                <div class="success-box" style="margin-bottom: 1rem;">
+                    <strong>✅ 付费订阅已激活！</strong><br>
+                    现在可以上传语音样本创建礼明老师的专属语音克隆
+                </div>
+                
+                <input type="file" id="voiceFile" accept=".mp3,.wav,.m4a" multiple style="display: none;">
+                <a href="/voice-clone-guide.html" class="upload-voice" style="text-decoration: none; display: inline-block; background: #8b5cf6;">
+                    <i class="fa fa-book"></i> 录音指导
+                </a>
+                <button class="upload-voice" onclick="document.getElementById('voiceFile').click()">
+                    <i class="fa fa-upload"></i> 选择音频文件
+                </button>
+                <button class="upload-voice" onclick="startRecording()">
+                    <i class="fa fa-microphone"></i> 开始录音
+                </button>
+                <button class="upload-voice" onclick="createVoiceClone()" style="background: #22c55e;">
+                    <i class="fa fa-magic"></i> 创建语音克隆
+                </button>
+                
+                <div class="warning-box" style="margin-top: 1rem;">
+                    <strong>📋 语音样本要求：</strong><br>
+                    • 清晰的中文语音，无背景噪音<br>
+                    • 时长3-10分钟为佳<br>
+                    • 包含多种语调和情感<br>
+                    • 支持格式：MP3, WAV, M4A<br>
+                    • 建议录制自然对话而非朗读
+                </div>
+            </div>
+
+            <div id="recordingStatus" style="display: none;">
+                <div class="success-box">
+                    <i class="fa fa-microphone"></i> 正在录音... <span id="recordTime">00:00</span>
+                    <button onclick="stopRecording()" style="margin-left: 1rem; padding: 0.5rem 1rem;">停止录音</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四步：测试语音 -->
+        <div class="step-card" id="testVoice" style="display: none;">
+            <h2><span class="step-number">4</span>测试语音效果</h2>
+            
+            <div class="test-voice">
+                <h3>输入测试文本</h3>
+                <textarea id="testText" placeholder="输入要测试的文本，例如：你好，我是礼明，打过胜仗、愿意分享" 
+                    style="width: 100%; height: 100px; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
+                
+                <button class="upload-voice" onclick="generateTestVoice()">
+                    <i class="fa fa-play"></i> 生成语音
+                </button>
+                
+                <audio id="testAudio" controls style="width: 100%; margin-top: 1rem; display: none;"></audio>
+            </div>
+        </div>
+
+        <!-- 配置代码 -->
+        <div class="step-card">
+            <h2><span class="step-number">5</span>系统集成代码</h2>
+            <p>以下是集成语音克隆功能的代码示例：</p>
+            
+            <h3>后端API (server.js)</h3>
+            <div class="code-block">
+// 添加ElevenLabs语音合成
+app.post('/api/text-to-speech', async (req, res) => {
+  try {
+    const { text, voiceId } = req.body;
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'audio/mpeg',
+        'Content-Type': 'application/json',
+        'xi-api-key': process.env.ELEVENLABS_API_KEY
+      },
+      body: JSON.stringify({
+        text: text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.5
+        }
+      })
+    });
+    
+    const audioBuffer = await response.arrayBuffer();
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(Buffer.from(audioBuffer));
+  } catch (error) {
+    res.status(500).json({ error: '语音生成失败' });
+  }
+});
+            </div>
+
+            <h3>前端集成 (script.js)</h3>
+            <div class="code-block">
+// 修改语音播放函数
+async function speakText(text) {
+  if (!isVoiceEnabled) return;
+  
+  try {
+    const response = await fetch('/api/text-to-speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        text: text, 
+        voiceId: 'your-cloned-voice-id' 
+      })
+    });
+    
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.play();
+  } catch (error) {
+    console.error('语音播放失败:', error);
+  }
+}
+            </div>
+        </div>
+
+        <div class="success-box">
+            <strong>🎉 完成后效果：</strong><br>
+            • 用户提问后，AI会用礼明老师的声音回复<br>
+            • 语音质量接近真人水平<br>
+            • 支持中文语调和情感表达<br>
+            • 可以调节语速、音调等参数
+        </div>
+    </div>
+
+    <script>
+        let selectedPlatform = null;
+        let mediaRecorder = null;
+        let recordedBlobs = [];
+
+        function selectPlatform(platform) {
+            selectedPlatform = platform;
+            
+            // 移除所有选中状态
+            document.querySelectorAll('.platform-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            event.currentTarget.classList.add('selected');
+            
+            // 显示API配置
+            document.getElementById('apiConfig').style.display = 'block';
+            
+            // 隐藏所有配置
+            document.getElementById('elevenlabsConfig').style.display = 'none';
+            document.getElementById('azureConfig').style.display = 'none';
+            document.getElementById('xunfeiConfig').style.display = 'none';
+            
+            // 显示对应配置
+            document.getElementById(platform + 'Config').style.display = 'block';
+        }
+
+        async function saveApiConfig() {
+            if (!selectedPlatform) {
+                alert('请先选择语音平台');
+                return;
+            }
+            
+            try {
+                let config = {};
+                
+                if (selectedPlatform === 'elevenlabs') {
+                    const apiKey = document.getElementById('elevenlabsKey').value.trim();
+                    if (!apiKey) {
+                        alert('请输入ElevenLabs API Key');
+                        return;
+                    }
+                    config = {
+                        platform: 'elevenlabs',
+                        elevenlabsKey: apiKey
+                    };
+                } else if (selectedPlatform === 'azure') {
+                    const subscriptionKey = document.getElementById('azureKey').value.trim();
+                    const region = document.getElementById('azureRegion').value.trim();
+                    if (!subscriptionKey || !region) {
+                        alert('请填写完整的Azure配置信息');
+                        return;
+                    }
+                    config = {
+                        platform: 'azure',
+                        azureKey: subscriptionKey,
+                        azureRegion: region
+                    };
+                } else if (selectedPlatform === 'xunfei') {
+                    const appId = document.getElementById('xunfeiAppId').value.trim();
+                    const apiSecret = document.getElementById('xunfeiSecret').value.trim();
+                    const apiKey = document.getElementById('xunfeiKey').value.trim();
+                    if (!appId || !apiSecret || !apiKey) {
+                        alert('请填写完整的讯飞语音配置信息');
+                        return;
+                    }
+                    config = {
+                        platform: 'xunfei',
+                        xunfeiAppId: appId,
+                        xunfeiSecret: apiSecret,
+                        xunfeiKey: apiKey
+                    };
+                }
+                
+                const response = await fetch('/api/voice-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('API配置保存成功！');
+                    // 显示语音样本上传
+                    document.getElementById('voiceSample').style.display = 'block';
+                    document.getElementById('testVoice').style.display = 'block';
+                    
+                    // 如果是ElevenLabs，加载可用语音列表
+                    if (selectedPlatform === 'elevenlabs') {
+                        loadVoices();
+                    }
+                } else {
+                    alert('保存失败：' + result.error);
+                }
+            } catch (error) {
+                console.error('保存配置失败:', error);
+                alert('保存失败，请检查网络连接');
+            }
+        }
+
+        // 录音功能
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedBlobs = [];
+
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                });
+
+                mediaRecorder.start();
+                document.getElementById('recordingStatus').style.display = 'block';
+                
+                // 开始计时
+                let seconds = 0;
+                const timer = setInterval(() => {
+                    seconds++;
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    document.getElementById('recordTime').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+
+                mediaRecorder.addEventListener('stop', () => {
+                    clearInterval(timer);
+                    document.getElementById('recordingStatus').style.display = 'none';
+                    
+                    const blob = new Blob(recordedBlobs, { type: 'audio/wav' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // 这里可以上传录音到服务器
+                    alert('录音完成！可以进行语音克隆训练了。');
+                });
+
+            } catch (error) {
+                alert('无法访问麦克风：' + error.message);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        }
+
+        async function generateTestVoice() {
+            const text = document.getElementById('testText').value;
+            if (!text.trim()) {
+                alert('请输入测试文本');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                if (response.ok && response.headers.get('content-type') === 'audio/mpeg') {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const audioElement = document.getElementById('testAudio');
+                    audioElement.src = audioUrl;
+                    audioElement.style.display = 'block';
+                    
+                    audioElement.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    
+                    alert('语音生成成功！请点击播放按钮试听。');
+                } else {
+                    const result = await response.json();
+                    alert('语音生成失败：' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('测试语音失败:', error);
+                alert('测试失败，请检查API配置和网络连接');
+            }
+        }
+
+        // 加载可用语音列表
+        async function loadVoices() {
+            try {
+                const response = await fetch('/api/voices');
+                const result = await response.json();
+                
+                if (result.success && result.voices.voices) {
+                    const voiceSelect = document.getElementById('voiceSelect');
+                    voiceSelect.innerHTML = '<option value="">请选择语音...</option>';
+                    
+                    // 推荐的中文语音
+                    const recommendedVoices = [
+                        'onwK4e9ZLuTAKqWW03F9', // Daniel (英文，但中文效果不错)
+                        'pNInz6obpgDQGcFmaJgB', // Adam (英文)
+                        'EXAVITQu4vr4xnSDxMaL', // Bella (英文)
+                    ];
+                    
+                    result.voices.voices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.value = voice.voice_id;
+                        
+                        let displayName = voice.name;
+                        if (recommendedVoices.includes(voice.voice_id)) {
+                            displayName += ' (推荐中文)';
+                        }
+                        
+                        option.textContent = `${displayName} (${voice.category || 'Unknown'})`;
+                        voiceSelect.appendChild(option);
+                    });
+                    
+                    // 默认选择推荐的中文语音
+                    if (recommendedVoices[0]) {
+                        voiceSelect.value = recommendedVoices[0];
+                    }
+                }
+            } catch (error) {
+                console.error('加载语音列表失败:', error);
+                const voiceSelect = document.getElementById('voiceSelect');
+                voiceSelect.innerHTML = '<option value="">加载失败，请检查网络连接</option>';
+            }
+        }
+
+        // 设置预设语音
+        async function setPresetVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedVoiceId = voiceSelect.value;
+            
+            if (!selectedVoiceId) {
+                alert('请先选择一个语音');
+                return;
+            }
+            
+            try {
+                // 获取当前配置
+                const configResponse = await fetch('/api/voice-config');
+                const currentConfig = await configResponse.json();
+                
+                // 更新语音ID
+                const newConfig = {
+                    ...currentConfig,
+                    voiceId: selectedVoiceId,
+                    voiceName: voiceSelect.options[voiceSelect.selectedIndex].text
+                };
+                
+                const response = await fetch('/api/voice-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newConfig)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ 默认语音设置成功！\n现在对话中会使用选择的语音。');
+                    
+                    // 自动填入测试文本
+                    document.getElementById('testText').value = '你好，我是礼明，打过胜仗、愿意分享。';
+                } else {
+                    alert('设置失败：' + result.error);
+                }
+            } catch (error) {
+                console.error('设置语音失败:', error);
+                alert('设置失败，请检查网络连接');
+            }
+        }
+
+        // 试听选中的语音
+        async function testSelectedVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedVoiceId = voiceSelect.value;
+            
+            if (!selectedVoiceId) {
+                alert('请先选择一个语音');
+                return;
+            }
+            
+            const testText = '你好，我是礼明，打过胜仗、愿意分享。';
+            
+            try {
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        text: testText,
+                        voiceId: selectedVoiceId 
+                    })
+                });
+                
+                if (response.ok && response.headers.get('content-type') === 'audio/mpeg') {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                    
+                    audio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    
+                    alert('🔊 正在播放试听，请注意听效果！');
+                } else {
+                    const result = await response.json();
+                    alert('试听失败：' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('试听失败:', error);
+                alert('试听失败，请检查网络连接');
+            }
+        }
+
+        // 创建语音克隆
+        async function createVoiceClone() {
+            const voiceFiles = document.getElementById('voiceFile').files;
+            if (!voiceFiles || voiceFiles.length === 0) {
+                alert('请先上传语音样本文件\n\n建议：\n• 上传3-10分钟的清晰语音\n• 包含多种语调和情感\n• 避免背景噪音');
+                return;
+            }
+            
+            // 检查文件数量
+            if (voiceFiles.length > 10) {
+                alert('最多只能上传10个音频文件');
+                return;
+            }
+            
+            // 检查文件格式和大小
+            const allowedFormats = ['mp3', 'wav', 'm4a', 'mp4'];
+            let totalSize = 0;
+            for (let file of voiceFiles) {
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (!allowedFormats.includes(extension)) {
+                    alert(`不支持的文件格式: ${file.name}\n请使用MP3、WAV或M4A格式`);
+                    return;
+                }
+                totalSize += file.size;
+            }
+            
+            // 检查总文件大小（限制100MB）
+            if (totalSize > 100 * 1024 * 1024) {
+                alert(`文件总大小过大: ${(totalSize / 1024 / 1024).toFixed(1)}MB\n请确保总大小不超过100MB`);
+                return;
+            }
+            
+            // 确认创建
+            const confirmed = confirm(`准备创建语音克隆：\n\n文件数量: ${voiceFiles.length} 个\n总大小: ${(totalSize / 1024 / 1024).toFixed(1)}MB\n\n这将使用您的ElevenLabs付费额度。\n确定要继续吗？`);
+            if (!confirmed) return;
+            
+            const formData = new FormData();
+            formData.append('voiceName', '礼明老师');
+            formData.append('voiceDescription', '礼明老师的专属语音克隆 - 打过胜仗、愿意分享');
+            
+            for (let i = 0; i < voiceFiles.length; i++) {
+                formData.append('voiceSamples', voiceFiles[i]);
+            }
+            
+            // 显示进度提示
+            const createButton = event.target;
+            const originalText = createButton.innerHTML;
+            createButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 创建中...';
+            createButton.disabled = true;
+            
+            // 显示进度状态
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '🔄 正在上传语音文件并创建克隆，这可能需要几分钟时间...';
+            createButton.parentNode.insertBefore(statusDiv, createButton.nextSibling);
+            
+            try {
+                const response = await fetch('/api/create-voice', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `✅ 语音克隆创建成功！语音ID: ${result.voiceId}`;
+                    
+                    alert(`🎉 语音克隆创建成功！\n\n语音名称: ${result.voice.name || '礼明老师'}\n语音ID: ${result.voiceId}\n\n现在可以在对话中使用礼明老师的真实声音了！\n\n建议：先在测试区域试听效果`);
+                    
+                    // 刷新语音列表
+                    await loadVoices();
+                    
+                    // 自动设置为默认语音
+                    try {
+                        const configResponse = await fetch('/api/voice-config');
+                        const currentConfig = await configResponse.json();
+                        
+                        const newConfig = {
+                            ...currentConfig,
+                            voiceId: result.voiceId,
+                            voiceName: '礼明老师（自定义克隆）'
+                        };
+                        
+                        await fetch('/api/voice-config', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newConfig)
+                        });
+                        
+                        // 自动填入测试文本
+                        document.getElementById('testText').value = '你好，我是礼明，打过胜仗、愿意分享。这是我的专属语音克隆测试。';
+                        
+                    } catch (configError) {
+                        console.error('设置默认语音失败:', configError);
+                    }
+                    
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `❌ 语音克隆失败: ${result.error}`;
+                    alert(`语音克隆失败：${result.error}\n\n可能的原因：\n• 语音文件质量不够\n• 网络连接问题\n• API配额不足\n\n请检查后重试`);
+                }
+            } catch (error) {
+                console.error('创建语音克隆失败:', error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ 创建失败: ${error.message}`;
+                alert(`创建失败：${error.message}\n\n请检查：\n1. 网络连接是否正常\n2. 文件格式是否正确\n3. ElevenLabs API是否正常\n4. 付费订阅是否有效`);
+            } finally {
+                // 恢复按钮状态
+                createButton.innerHTML = originalText;
+                createButton.disabled = false;
+                
+                // 3秒后移除状态提示
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.parentNode.removeChild(statusDiv);
+                    }
+                }, 10000);
+            }
+        }
+
+        // 文件上传处理
+        document.getElementById('voiceFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                alert(`已选择文件：${file.name}\n大小：${(file.size / 1024 / 1024).toFixed(2)}MB`);
+            }
+        });
+    </script>
+</body>
+</html> 

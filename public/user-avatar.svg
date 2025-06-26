@@ -1,0 +1,17 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆 -->
+  <circle cx="100" cy="100" r="100" fill="#22c55e"/>
+  
+  <!-- 头部 -->
+  <circle cx="100" cy="80" r="35" fill="white"/>
+  
+  <!-- 身体 -->
+  <path d="M100 115C120 115 140 130 140 150V200H60V150C60 130 80 115 100 115Z" fill="white"/>
+  
+  <!-- 眼睛 -->
+  <circle cx="90" cy="75" r="3" fill="#22c55e"/>
+  <circle cx="110" cy="75" r="3" fill="#22c55e"/>
+  
+  <!-- 微笑 -->
+  <path d="M85 90C95 95 105 95 115 90" stroke="#22c55e" stroke-width="2" fill="none"/>
+</svg> 

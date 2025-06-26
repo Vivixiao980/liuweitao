@@ -1,0 +1,21 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆 -->
+  <circle cx="100" cy="100" r="100" fill="#6366f1"/>
+  
+  <!-- 头部 -->
+  <circle cx="100" cy="80" r="35" fill="white"/>
+  
+  <!-- 身体 -->
+  <path d="M100 115C120 115 140 130 140 150V200H60V150C60 130 80 115 100 115Z" fill="white"/>
+  
+  <!-- 眼镜 -->
+  <circle cx="90" cy="75" r="8" fill="none" stroke="#6366f1" stroke-width="2"/>
+  <circle cx="110" cy="75" r="8" fill="none" stroke="#6366f1" stroke-width="2"/>
+  <line x1="98" y1="75" x2="102" y2="75" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 微笑 -->
+  <path d="M90 85C95 90 105 90 110 85" stroke="#6366f1" stroke-width="2" fill="none"/>
+  
+  <!-- 装饰性领带 -->
+  <path d="M100 115L95 130L100 145L105 130Z" fill="#6366f1"/>
+</svg> 

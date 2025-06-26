@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiliconFlow配置 - 礼明老师智能体</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            background: #fafafa;
+        }
+
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .config-section h2::before {
+            content: "🤖";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #0d47a1;
+            line-height: 1.5;
+        }
+
+        .navigation {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .navigation a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 SiliconFlow配置</h1>
+            <p>配置Deepseek模型用于智能对话</p>
+        </div>
+
+        <div class="content">
+            <!-- 配置说明 -->
+            <div class="info-box">
+                <h3>📋 配置说明</h3>
+                <p>SiliconFlow的Deepseek-V3是目前最先进的AI模型之一，将用于智能对话和知识库分析。语音功能仍使用MiniMax提供更好的中文语音效果。</p>
+            </div>
+
+            <!-- 配置表单 -->
+            <div class="config-section">
+                <h2>模型配置</h2>
+                
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <input type="password" id="apiKey" placeholder="输入SiliconFlow API Key" value="sk-rxvomaryngzrvzjxfkinvyzpobcidsaqopuslsrurwmreuhv">
+                </div>
+
+                <div class="form-group">
+                    <label for="model">模型选择</label>
+                    <select id="model">
+                        <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3 (推荐)</option>
+                        <option value="deepseek-ai/DeepSeek-V2.5">DeepSeek-V2.5</option>
+                        <option value="Qwen/Qwen2.5-72B-Instruct">Qwen2.5-72B</option>
+                        <option value="meta-llama/Llama-3.1-70B-Instruct">Llama-3.1-70B</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enabled" checked> 启用SiliconFlow智能对话
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+                <button class="btn btn-success" onclick="testConnection()">测试连接</button>
+                <button class="btn btn-warning" onclick="loadConfig()">刷新配置</button>
+
+                <div id="configStatus"></div>
+            </div>
+
+            <!-- 测试区域 -->
+            <div class="config-section">
+                <h2>功能测试</h2>
+                
+                <div class="form-group">
+                    <label for="testMessage">测试消息</label>
+                    <input type="text" id="testMessage" placeholder="输入测试消息..." value="礼明老师，请介绍一下您的创业经验">
+                </div>
+
+                <button class="btn btn-primary" onclick="testChat()">测试对话</button>
+                <button class="btn btn-success" onclick="testKnowledgeBase()">测试知识库</button>
+
+                <div id="testStatus"></div>
+            </div>
+
+            <!-- 当前配置状态 -->
+            <div class="config-section">
+                <h2>当前状态</h2>
+                <div id="currentStatus">
+                    <div class="loading"></div> 加载配置中...
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <a href="/">返回主页</a>
+            <a href="/test-all-features.html">功能测试</a>
+            <a href="/minimax-voice-setup.html">语音设置</a>
+            <a href="/admin.html">管理后台</a>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时获取当前配置
+        window.addEventListener('load', function() {
+            loadConfig();
+        });
+
+        // 加载配置
+        async function loadConfig() {
+            const statusDiv = document.getElementById('currentStatus');
+            statusDiv.innerHTML = '<div class="loading"></div> 加载配置中...';
+            
+            try {
+                const response = await fetch('/api/siliconflow/config');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const config = data.config;
+                    
+                    // 更新表单
+                    document.getElementById('model').value = config.model || 'deepseek-ai/DeepSeek-V3';
+                    document.getElementById('enabled').checked = config.enabled !== false;
+                    
+                    // 显示状态
+                    statusDiv.innerHTML = `
+                        <div class="status status-${config.enabled ? 'success' : 'info'}">
+                            <strong>平台:</strong> ${config.platform || 'SiliconFlow'}<br>
+                            <strong>模型:</strong> ${config.model || 'DeepSeek-V3'}<br>
+                            <strong>状态:</strong> ${config.enabled ? '已启用' : '未启用'}<br>
+                            <strong>说明:</strong> ${config.description || '智能对话模型'}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status status-error">加载配置失败: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status status-error">连接失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            const statusDiv = document.getElementById('configStatus');
+            statusDiv.innerHTML = '<div class="loading"></div> 保存配置中...';
+            
+            const config = {
+                apiKey: document.getElementById('apiKey').value,
+                model: document.getElementById('model').value,
+                enabled: document.getElementById('enabled').checked
+            };
+            
+            try {
+                const response = await fetch('/api/siliconflow/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `
+                        <div class="status status-success">
+                            ✅ ${data.message}<br>
+                            模型: ${data.config.model}<br>
+                            状态: ${data.config.enabled ? '已启用' : '未启用'}
+                        </div>
+                    `;
+                    // 刷新当前状态
+                    loadConfig();
+                } else {
+                    statusDiv.innerHTML = '<div class="status status-error">❌ 保存失败: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ 请求失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 测试连接
+        async function testConnection() {
+            const statusDiv = document.getElementById('configStatus');
+            statusDiv.innerHTML = '<div class="loading"></div> 测试连接中...';
+            
+            try {
+                const response = await fetch('/api/siliconflow/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `
+                        <div class="status status-success">
+                            ✅ ${data.message}<br>
+                            <strong>测试回复:</strong> ${data.response}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status status-error">❌ 连接失败: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ 请求失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 测试对话
+        async function testChat() {
+            const message = document.getElementById('testMessage').value;
+            const statusDiv = document.getElementById('testStatus');
+            
+            if (!message.trim()) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ 请输入测试消息</div>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<div class="loading"></div> 生成回复中...';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `
+                        <div class="status status-success">
+                            ✅ 对话测试成功！<br>
+                            <strong>问题:</strong> ${message}<br>
+                            <strong>回复:</strong> ${data.reply}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status status-error">❌ 对话失败: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ 请求失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 测试知识库
+        async function testKnowledgeBase() {
+            const statusDiv = document.getElementById('testStatus');
+            statusDiv.innerHTML = '<div class="loading"></div> 检查知识库...';
+            
+            try {
+                const response = await fetch('/api/uploads');
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.uploads && data.uploads.length > 0) {
+                        let uploadList = '<div class="status status-success">✅ 知识库文件:<br>';
+                        data.uploads.forEach(upload => {
+                            uploadList += `• ${upload.originalName} (${(upload.size / 1024 / 1024).toFixed(2)}MB)<br>`;
+                        });
+                        uploadList += '</div>';
+                        statusDiv.innerHTML = uploadList;
+                    } else {
+                        statusDiv.innerHTML = '<div class="status status-info">ℹ️ 暂无知识库文件</div>';
+                    }
+                } else {
+                    statusDiv.innerHTML = '<div class="status status-error">❌ 检查失败: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ 请求失败: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html> 

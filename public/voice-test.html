@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音测试 - ElevenLabs</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .test-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 16px;
+        }
+        .test-button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0.5rem;
+        }
+        .test-button:hover {
+            background: #5855eb;
+        }
+        .test-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎙️ ElevenLabs 语音测试</h1>
+        <p>测试您的ElevenLabs API配置是否正常工作</p>
+        
+        <div id="status" class="status info">
+            API Key已配置: sk_ff9d...7946 ✅
+        </div>
+        
+        <textarea id="testText" class="test-input" rows="4" placeholder="输入要测试的文本...">你好，我是礼明，打过胜仗、愿意分享。这是一个语音测试。</textarea>
+        
+        <div>
+            <button class="test-button" onclick="testVoice()" id="testBtn">
+                🔊 生成语音
+            </button>
+            <button class="test-button" onclick="getVoices()" id="voicesBtn">
+                📋 获取语音列表
+            </button>
+        </div>
+        
+        <audio id="audioPlayer" controls style="width: 100%; margin-top: 1rem; display: none;"></audio>
+        
+        <div id="voicesList" style="margin-top: 1rem;"></div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+            <h3>📝 使用说明：</h3>
+            <ol>
+                <li>点击"生成语音"测试基本语音合成功能</li>
+                <li>点击"获取语音列表"查看可用的语音</li>
+                <li>如果测试成功，可以返回主页面开始对话</li>
+                <li>如果失败，请检查网络连接和API Key</li>
+            </ol>
+            <p><a href="/" style="color: #6366f1;">← 返回对话界面</a></p>
+        </div>
+    </div>
+
+    <script>
+        async function testVoice() {
+            const text = document.getElementById('testText').value;
+            const testBtn = document.getElementById('testBtn');
+            const status = document.getElementById('status');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            if (!text.trim()) {
+                alert('请输入测试文本');
+                return;
+            }
+            
+            testBtn.disabled = true;
+            testBtn.innerHTML = '🔄 生成中...';
+            status.className = 'status info';
+            status.innerHTML = '正在生成语音，请稍候...';
+            
+            try {
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                if (response.ok && response.headers.get('content-type') === 'audio/mpeg') {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+                    audioPlayer.onended = () => URL.revokeObjectURL(audioUrl);
+                    
+                    status.className = 'status success';
+                    status.innerHTML = '✅ 语音生成成功！请点击播放按钮试听。';
+                } else {
+                    const result = await response.json();
+                    throw new Error(result.error || '未知错误');
+                }
+            } catch (error) {
+                console.error('语音测试失败:', error);
+                status.className = 'status error';
+                status.innerHTML = `❌ 语音生成失败: ${error.message}`;
+                audioPlayer.style.display = 'none';
+            } finally {
+                testBtn.disabled = false;
+                testBtn.innerHTML = '🔊 生成语音';
+            }
+        }
+        
+        async function getVoices() {
+            const voicesBtn = document.getElementById('voicesBtn');
+            const voicesList = document.getElementById('voicesList');
+            const status = document.getElementById('status');
+            
+            voicesBtn.disabled = true;
+            voicesBtn.innerHTML = '🔄 获取中...';
+            
+            try {
+                const response = await fetch('/api/voices');
+                const result = await response.json();
+                
+                if (result.success && result.voices.voices) {
+                    const voices = result.voices.voices;
+                    let html = '<h3>📋 可用语音列表:</h3><ul>';
+                    
+                    voices.forEach(voice => {
+                        html += `<li><strong>${voice.name}</strong> (${voice.category || 'Unknown'}) - ID: ${voice.voice_id}</li>`;
+                    });
+                    
+                    html += '</ul>';
+                    voicesList.innerHTML = html;
+                    
+                    status.className = 'status success';
+                    status.innerHTML = `✅ 成功获取 ${voices.length} 个语音`;
+                } else {
+                    throw new Error(result.error || '获取语音列表失败');
+                }
+            } catch (error) {
+                console.error('获取语音列表失败:', error);
+                status.className = 'status error';
+                status.innerHTML = `❌ 获取语音列表失败: ${error.message}`;
+                voicesList.innerHTML = '';
+            } finally {
+                voicesBtn.disabled = false;
+                voicesBtn.innerHTML = '📋 获取语音列表';
+            }
+        }
+        
+        // 页面加载时自动测试配置
+        window.onload = function() {
+            // 可以在这里添加自动测试逻辑
+        };
+    </script>
+</body>
+</html> 

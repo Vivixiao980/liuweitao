@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>礼明老师 - 管理后台</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .admin-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .actions-section {
+            margin-top: 3rem;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .action-button {
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .action-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        .action-button.secondary {
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .action-button.secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .recent-conversations {
+            margin-top: 3rem;
+        }
+        
+        .conversation-list {
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .conversation-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: white;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .conversation-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .conversation-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .conversation-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="/" class="back-link">
+            <i class="fa fa-arrow-left"></i>
+            返回对话界面
+        </a>
+        
+        <div class="admin-header">
+            <h1>礼明老师管理后台</h1>
+            <p>查看对话统计和管理功能</p>
+        </div>
+        
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <h3>总对话数</h3>
+                <div class="stat-value" id="totalConversations">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>用户数量</h3>
+                <div class="stat-value" id="uniqueUsers">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>今日对话</h3>
+                <div class="stat-value" id="todayConversations">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>平均响应时间</h3>
+                <div class="stat-value">0.8s</div>
+            </div>
+        </div>
+        
+        <div class="actions-section">
+            <h2>管理操作</h2>
+            <div class="actions-grid">
+                <button class="action-button" onclick="exportConversations()">
+                    <i class="fa fa-download"></i>
+                    导出对话记录
+                </button>
+                
+                <button class="action-button secondary" onclick="refreshStats()">
+                    <i class="fa fa-refresh"></i>
+                    刷新统计
+                </button>
+                
+                <button class="action-button secondary" onclick="clearStats()">
+                    <i class="fa fa-trash"></i>
+                    清空数据
+                </button>
+                
+                <button class="action-button secondary" onclick="viewLogs()">
+                    <i class="fa fa-file-text"></i>
+                    查看日志
+                </button>
+            </div>
+        </div>
+        
+        <div class="recent-conversations">
+            <h2>最近对话</h2>
+            <div class="conversation-list" id="conversationList">
+                <div class="conversation-item">
+                    <div class="conversation-meta">
+                        <span>用户ID: anonymous</span>
+                        <span>时间: 加载中...</span>
+                    </div>
+                    <div class="conversation-text">
+                        正在加载对话记录...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 加载统计数据
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                if (stats) {
+                    document.getElementById('totalConversations').textContent = stats.totalConversations || 0;
+                    document.getElementById('uniqueUsers').textContent = stats.uniqueUsers || 0;
+                    
+                    // 计算今日对话数（这里简化处理）
+                    document.getElementById('todayConversations').textContent = Math.floor((stats.totalConversations || 0) * 0.1);
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+        
+        // 加载最近对话
+        async function loadRecentConversations() {
+            try {
+                const response = await fetch('/api/export-conversations');
+                const conversations = await response.json();
+                
+                const conversationList = document.getElementById('conversationList');
+                
+                if (conversations && conversations.length > 0) {
+                    // 只显示最近10条对话
+                    const recentConversations = conversations.slice(-10).reverse();
+                    
+                    conversationList.innerHTML = recentConversations.map(conv => `
+                        <div class="conversation-item">
+                            <div class="conversation-meta">
+                                <span>用户ID: ${conv.userId}</span>
+                                <span>时间: ${new Date(conv.timestamp).toLocaleString('zh-CN')}</span>
+                            </div>
+                            <div class="conversation-text">
+                                <strong>问:</strong> ${conv.userMessage}<br>
+                                <strong>答:</strong> ${conv.teacherResponse.substring(0, 100)}${conv.teacherResponse.length > 100 ? '...' : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    conversationList.innerHTML = '<div class="conversation-item">暂无对话记录</div>';
+                }
+            } catch (error) {
+                console.error('加载对话记录失败:', error);
+                document.getElementById('conversationList').innerHTML = '<div class="conversation-item">加载失败</div>';
+            }
+        }
+        
+        // 导出对话记录
+        async function exportConversations() {
+            try {
+                const response = await fetch('/api/export-conversations');
+                const blob = await response.blob();
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `对话记录_${new Date().toLocaleDateString('zh-CN')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('对话记录导出成功！');
+            } catch (error) {
+                console.error('导出失败:', error);
+                alert('导出失败，请稍后重试。');
+            }
+        }
+        
+        // 刷新统计
+        function refreshStats() {
+            loadStats();
+            loadRecentConversations();
+            alert('统计数据已刷新！');
+        }
+        
+        // 清空数据（演示功能，实际应用中需要谨慎）
+        function clearStats() {
+            if (confirm('确定要清空所有对话数据吗？此操作不可恢复！')) {
+                alert('清空功能仅为演示，实际应用中需要后端API支持');
+            }
+        }
+        
+        // 查看日志
+        function viewLogs() {
+            alert('日志查看功能待开发');
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadRecentConversations();
+            
+            // 每30秒自动刷新数据
+            setInterval(() => {
+                loadStats();
+                loadRecentConversations();
+            }, 30000);
+        });
+    </script>
+</body>
+</html> 

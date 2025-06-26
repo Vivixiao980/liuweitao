@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音克隆上传 - 礼明老师智能体</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #0056b3;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #f8fff8;
+        }
+        
+        .recorder-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .recording-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .voice-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .voice-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .voice-info {
+            flex: 1;
+        }
+        
+        .voice-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .voice-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .voice-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .requirements {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .requirements h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .requirements ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .requirements li {
+            margin: 8px 0;
+            color: #856404;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .navigation a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .navigation a:hover {
+            background: #007bff;
+            color: white;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 语音克隆上传</h1>
+        <p class="subtitle">上传您的语音样本，创建专属的AI语音克隆</p>
+        
+        <!-- 录音要求说明 -->
+        <div class="requirements">
+            <h4>📋 录音要求</h4>
+            <ul>
+                <li><strong>时长：</strong>建议每段录音5-30秒，总时长至少2-3分钟</li>
+                <li><strong>内容：</strong>清晰朗读不同的句子，包含各种语音和语调</li>
+                <li><strong>环境：</strong>安静环境，避免背景噪音和回音</li>
+                <li><strong>质量：</strong>采样率44.1kHz或48kHz，比特率128kbps以上</li>
+                <li><strong>格式：</strong>支持MP3、WAV、M4A格式</li>
+                <li><strong>数量：</strong>建议上传3-10个不同的音频片段</li>
+            </ul>
+        </div>
+        
+        <!-- 在线录音 -->
+        <div class="section">
+            <h3>🎙️ 在线录音</h3>
+            <p>直接在浏览器中录制您的语音样本：</p>
+            
+            <div class="recorder-controls">
+                <button class="btn btn-success" id="startRecord" onclick="startRecording()">
+                    🎤 开始录音
+                </button>
+                <button class="btn btn-danger" id="stopRecord" onclick="stopRecording()" disabled>
+                    ⏹️ 停止录音
+                </button>
+                <button class="btn btn-secondary" id="playRecord" onclick="playRecording()" disabled>
+                    ▶️ 播放试听
+                </button>
+                <div class="recording-status" id="recordingStatus" style="display: none;">
+                    <div class="recording-dot"></div>
+                    <span>录音中... <span id="recordingTime">00:00</span></span>
+                </div>
+            </div>
+            
+            <audio id="audioPlayback" class="audio-player" controls style="display: none;"></audio>
+            
+            <div>
+                <input type="text" id="recordingName" placeholder="为这段录音命名（例如：自我介绍、问候语等）">
+                <button class="btn" id="saveRecord" onclick="saveRecording()" disabled>
+                    💾 保存录音
+                </button>
+            </div>
+            
+            <div id="recordingResult"></div>
+        </div>
+        
+        <!-- 文件上传 -->
+        <div class="section">
+            <h3>📁 文件上传</h3>
+            <p>上传已有的音频文件：</p>
+            
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 48px; margin-bottom: 15px;">🎵</div>
+                <h4>点击选择文件或拖拽到此处</h4>
+                <p>支持 MP3、WAV、M4A 格式，单个文件最大50MB</p>
+            </div>
+            
+            <input type="file" id="fileInput" multiple accept=".mp3,.wav,.m4a" style="display: none;">
+            
+            <div class="progress-bar" id="uploadProgress" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div id="uploadResult"></div>
+        </div>
+        
+        <!-- 已上传的语音样本 -->
+        <div class="section">
+            <h3>🎵 已上传的语音样本</h3>
+            <p>管理您的语音克隆样本：</p>
+            
+            <button class="btn" onclick="loadVoiceSamples()">🔄 刷新列表</button>
+            <button class="btn btn-success" onclick="createVoiceClone()" id="createCloneBtn">
+                🤖 创建语音克隆
+            </button>
+            
+            <div class="voice-list" id="voiceList">
+                <div class="result info">点击"刷新列表"查看已上传的语音样本</div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <a href="/">返回主页</a>
+            <a href="/recording-scripts.html">录音脚本</a>
+            <a href="/simple-voice-test.html">语音测试</a>
+            <a href="/quick-test.html">功能测试</a>
+            <a href="/admin.html">管理后台</a>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let recordingTimer;
+        let recordingSeconds = 0;
+        let currentRecordingBlob = null;
+        
+        // 初始化
+        window.addEventListener('load', function() {
+            setupFileUpload();
+            loadVoiceSamples();
+        });
+        
+        // 设置文件上传拖拽功能
+        function setupFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFileUpload(files);
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                handleFileUpload(e.target.files);
+            });
+        }
+        
+        // 开始录音
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                recordingSeconds = 0;
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = function() {
+                    currentRecordingBlob = new Blob(recordedChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(currentRecordingBlob);
+                    const audioPlayback = document.getElementById('audioPlayback');
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.style.display = 'block';
+                    
+                    document.getElementById('playRecord').disabled = false;
+                    document.getElementById('saveRecord').disabled = false;
+                };
+                
+                mediaRecorder.start();
+                
+                // 更新UI
+                document.getElementById('startRecord').disabled = true;
+                document.getElementById('stopRecord').disabled = false;
+                document.getElementById('recordingStatus').style.display = 'flex';
+                
+                // 开始计时
+                recordingTimer = setInterval(function() {
+                    recordingSeconds++;
+                    const minutes = Math.floor(recordingSeconds / 60);
+                    const seconds = recordingSeconds % 60;
+                    document.getElementById('recordingTime').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+                
+            } catch (error) {
+                document.getElementById('recordingResult').innerHTML = 
+                    `<div class="result error">❌ 录音失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 停止录音
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            
+            clearInterval(recordingTimer);
+            
+            // 更新UI
+            document.getElementById('startRecord').disabled = false;
+            document.getElementById('stopRecord').disabled = true;
+            document.getElementById('recordingStatus').style.display = 'none';
+        }
+        
+        // 播放录音
+        function playRecording() {
+            const audioPlayback = document.getElementById('audioPlayback');
+            audioPlayback.play();
+        }
+        
+        // 保存录音
+        async function saveRecording() {
+            const recordingName = document.getElementById('recordingName').value.trim();
+            if (!recordingName) {
+                document.getElementById('recordingResult').innerHTML = 
+                    '<div class="result error">❌ 请为录音命名</div>';
+                return;
+            }
+            
+            if (!currentRecordingBlob) {
+                document.getElementById('recordingResult').innerHTML = 
+                    '<div class="result error">❌ 没有可保存的录音</div>';
+                return;
+            }
+            
+            const resultDiv = document.getElementById('recordingResult');
+            resultDiv.innerHTML = '<div class="loading"></div> 保存录音中...';
+            
+            try {
+                const formData = new FormData();
+                const fileName = `recording_${Date.now()}_${recordingName}.wav`;
+                formData.append('voiceFile', currentRecordingBlob, fileName);
+                formData.append('sampleName', recordingName);
+                formData.append('duration', recordingSeconds);
+                
+                const response = await fetch('/api/upload-voice-sample', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="result success">✅ ${data.message}</div>`;
+                    document.getElementById('recordingName').value = '';
+                    document.getElementById('saveRecord').disabled = true;
+                    loadVoiceSamples(); // 刷新列表
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ 保存失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ 保存失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 处理文件上传
+        async function handleFileUpload(files) {
+            if (!files || files.length === 0) return;
+            
+            const resultDiv = document.getElementById('uploadResult');
+            const progressBar = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            
+            resultDiv.innerHTML = '';
+            progressBar.style.display = 'block';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // 检查文件类型
+                if (!file.type.startsWith('audio/')) {
+                    resultDiv.innerHTML += `<div class="result error">❌ ${file.name}: 不是音频文件</div>`;
+                    continue;
+                }
+                
+                // 检查文件大小
+                if (file.size > 50 * 1024 * 1024) {
+                    resultDiv.innerHTML += `<div class="result error">❌ ${file.name}: 文件过大（超过50MB）</div>`;
+                    continue;
+                }
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('voiceFile', file);
+                    formData.append('sampleName', file.name.split('.')[0]);
+                    
+                    const response = await fetch('/api/upload-voice-sample', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        resultDiv.innerHTML += `<div class="result success">✅ ${file.name}: 上传成功</div>`;
+                    } else {
+                        resultDiv.innerHTML += `<div class="result error">❌ ${file.name}: ${data.error}</div>`;
+                    }
+                    
+                    // 更新进度
+                    const progress = ((i + 1) / files.length) * 100;
+                    progressFill.style.width = progress + '%';
+                    
+                } catch (error) {
+                    resultDiv.innerHTML += `<div class="result error">❌ ${file.name}: ${error.message}</div>`;
+                }
+            }
+            
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            }, 2000);
+            
+            loadVoiceSamples(); // 刷新列表
+        }
+        
+        // 加载语音样本列表
+        async function loadVoiceSamples() {
+            const listDiv = document.getElementById('voiceList');
+            listDiv.innerHTML = '<div class="loading"></div> 加载中...';
+            
+            try {
+                const response = await fetch('/api/voice-samples');
+                const data = await response.json();
+                
+                if (data.success && data.samples.length > 0) {
+                    let html = '';
+                    data.samples.forEach(sample => {
+                        html += `
+                            <div class="voice-item">
+                                <div class="voice-info">
+                                    <div class="voice-name">${sample.sampleName || sample.originalname}</div>
+                                    <div class="voice-details">
+                                        大小: ${(sample.size / 1024 / 1024).toFixed(2)}MB | 
+                                        上传时间: ${new Date(sample.uploadTime).toLocaleString()}
+                                        ${sample.duration ? ` | 时长: ${sample.duration}秒` : ''}
+                                    </div>
+                                </div>
+                                <div class="voice-actions">
+                                    <button class="btn btn-secondary" onclick="playVoiceSample('${sample.filename}')">
+                                        ▶️ 播放
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteVoiceSample('${sample.filename}')">
+                                        🗑️ 删除
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listDiv.innerHTML = html;
+                    
+                    // 如果有样本，启用创建克隆按钮
+                    document.getElementById('createCloneBtn').disabled = false;
+                } else {
+                    listDiv.innerHTML = '<div class="result info">暂无语音样本，请先录制或上传音频文件</div>';
+                    document.getElementById('createCloneBtn').disabled = true;
+                }
+            } catch (error) {
+                listDiv.innerHTML = `<div class="result error">❌ 加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 播放语音样本
+        function playVoiceSample(filename) {
+            const audio = new Audio(`/uploads/${filename}`);
+            audio.play().catch(error => {
+                alert('播放失败: ' + error.message);
+            });
+        }
+        
+        // 删除语音样本
+        async function deleteVoiceSample(filename) {
+            if (!confirm('确定要删除这个语音样本吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/voice-samples/${filename}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('删除成功');
+                    loadVoiceSamples();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        // 创建语音克隆
+        async function createVoiceClone() {
+            const cloneName = prompt('请为您的语音克隆命名：', '我的语音克隆');
+            if (!cloneName) return;
+            
+            const resultDiv = document.getElementById('voiceList');
+            const originalContent = resultDiv.innerHTML;
+            resultDiv.innerHTML = '<div class="loading"></div> 创建语音克隆中，这可能需要几分钟...';
+            
+            try {
+                const response = await fetch('/api/create-voice-clone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cloneName: cloneName,
+                        description: '基于用户上传样本的语音克隆'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadVoiceSamples(); // 恢复列表
+                } else {
+                    alert(`❌ 创建失败: ${data.error}`);
+                    resultDiv.innerHTML = originalContent; // 恢复原内容
+                }
+            } catch (error) {
+                alert(`❌ 创建失败: ${error.message}`);
+                resultDiv.innerHTML = originalContent; // 恢复原内容
+            }
+        }
+    </script>
+</body>
+</html> 

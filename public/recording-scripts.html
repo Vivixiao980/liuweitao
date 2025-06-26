@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>录音脚本 - 语音克隆助手</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .script-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .script-section h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        
+        .script-text {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .script-text:hover {
+            background: #f8f9ff;
+            border-color: #007bff;
+        }
+        
+        .script-text.selected {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .tips h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .navigation a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .navigation a:hover {
+            background: #007bff;
+            color: white;
+        }
+        
+        .copy-notice {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .copy-notice.show {
+            opacity: 1;
+        }
+        
+        .script-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 录音脚本指南</h1>
+        
+        <div class="tips">
+            <h4>📋 录音提示</h4>
+            <ul>
+                <li>点击文本框可以复制内容到剪贴板</li>
+                <li>建议在安静环境中录音</li>
+                <li>保持正常语速，发音清晰</li>
+                <li>每段录音5-30秒为宜</li>
+                <li>尽量使用不同的语调和情感</li>
+            </ul>
+        </div>
+        
+        <!-- 基础问候语 -->
+        <div class="script-section">
+            <h3>👋 基础问候语</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                你好，我是礼明，打过胜仗、愿意分享。
+                <div class="script-meta">建议语调：自信、友好</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                大家好，很高兴认识你们。
+                <div class="script-meta">建议语调：热情、欢迎</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                早上好，今天是美好的一天。
+                <div class="script-meta">建议语调：精神饱满</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                晚上好，希望你今天过得愉快。
+                <div class="script-meta">建议语调：温和、关怀</div>
+            </div>
+        </div>
+        
+        <!-- 自我介绍 -->
+        <div class="script-section">
+            <h3>🎯 自我介绍</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                我叫张礼明，是一名教育工作者。我相信每个人都有无限的潜力，只要找到正确的方法和坚持不懈的努力。
+                <div class="script-meta">建议语调：正式、专业</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                在我的教学生涯中，我见证了无数学生的成长和蜕变。这让我深深相信，教育的力量是无穷的。
+                <div class="script-meta">建议语调：感慨、深情</div>
+            </div>
+        </div>
+        
+        <!-- 教学相关 -->
+        <div class="script-section">
+            <h3>📚 教学相关</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                学习是一个循序渐进的过程，不要着急，慢慢来。
+                <div class="script-meta">建议语调：耐心、鼓励</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                遇到困难时，不要灰心，这是成长的必经之路。
+                <div class="script-meta">建议语调：坚定、支持</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                知识需要实践来验证，理论与实际相结合才能真正掌握。
+                <div class="script-meta">建议语调：启发、思考</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                每个学生都是独特的，要找到适合自己的学习方法。
+                <div class="script-meta">建议语调：个性化、关怀</div>
+            </div>
+        </div>
+        
+        <!-- 情感表达 -->
+        <div class="script-section">
+            <h3>😊 情感表达</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                哇，这个想法真的很棒！我很欣赏你的创造力。
+                <div class="script-meta">建议语调：惊喜、赞赏</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                嗯，这个问题确实值得深入思考。
+                <div class="script-meta">建议语调：沉思、认真</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                我理解你的困惑，让我们一起来分析一下。
+                <div class="script-meta">建议语调：理解、支持</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                太好了！你已经掌握了这个概念。
+                <div class="script-meta">建议语调：兴奋、肯定</div>
+            </div>
+        </div>
+        
+        <!-- 常用回应 -->
+        <div class="script-section">
+            <h3>💬 常用回应</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                谢谢你的提问，这是一个很好的问题。
+                <div class="script-meta">建议语调：感谢、鼓励</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                不用客气，这是我应该做的。
+                <div class="script-meta">建议语调：谦逊、自然</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                如果还有其他问题，随时可以来找我。
+                <div class="script-meta">建议语调：开放、友好</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                我们下次再聊，祝你学习愉快！
+                <div class="script-meta">建议语调：告别、祝福</div>
+            </div>
+        </div>
+        
+        <!-- 专业术语 -->
+        <div class="script-section">
+            <h3>🔬 专业术语</h3>
+            
+            <div class="script-text" onclick="copyText(this)">
+                创新思维、批判性思考、逻辑推理、系统分析。
+                <div class="script-meta">建议语调：专业、清晰</div>
+            </div>
+            
+            <div class="script-text" onclick="copyText(this)">
+                教育方法论、学习策略、认知心理学、发展心理学。
+                <div class="script-meta">建议语调：学术、严谨</div>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>🎯 录音建议</h4>
+            <p><strong>录音顺序：</strong></p>
+            <ol>
+                <li>先录制基础问候语（熟悉录音过程）</li>
+                <li>再录制自我介绍（建立个人风格）</li>
+                <li>然后录制教学相关内容（专业表达）</li>
+                <li>接着录制情感表达（丰富语调）</li>
+                <li>最后录制常用回应和专业术语</li>
+            </ol>
+            
+            <p><strong>质量检查：</strong></p>
+            <ul>
+                <li>录音后立即播放检查音质</li>
+                <li>确保没有背景噪音</li>
+                <li>语速适中，发音清晰</li>
+                <li>情感表达自然</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-success" onclick="window.open('/voice-clone-upload.html', '_blank')">
+                🎤 开始录音
+            </button>
+            <button class="btn" onclick="selectAll()">
+                📋 全选文本
+            </button>
+        </div>
+        
+        <div class="navigation">
+            <a href="/">返回主页</a>
+            <a href="/voice-clone-upload.html">语音克隆</a>
+            <a href="/quick-test.html">功能测试</a>
+        </div>
+    </div>
+    
+    <div class="copy-notice" id="copyNotice">
+        ✅ 文本已复制到剪贴板
+    </div>
+
+    <script>
+        function copyText(element) {
+            // 获取文本内容（排除meta信息）
+            const textNode = element.firstChild;
+            const text = textNode.textContent.trim();
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(text).then(function() {
+                // 显示复制成功提示
+                showCopyNotice();
+                
+                // 添加选中效果
+                element.classList.add('selected');
+                setTimeout(() => {
+                    element.classList.remove('selected');
+                }, 500);
+            }).catch(function(err) {
+                console.error('复制失败:', err);
+                // 降级方案
+                fallbackCopyText(text);
+            });
+        }
+        
+        function fallbackCopyText(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopyNotice();
+            } catch (err) {
+                console.error('降级复制也失败:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopyNotice() {
+            const notice = document.getElementById('copyNotice');
+            notice.classList.add('show');
+            setTimeout(() => {
+                notice.classList.remove('show');
+            }, 2000);
+        }
+        
+        function selectAll() {
+            const scripts = document.querySelectorAll('.script-text');
+            let allText = '';
+            
+            scripts.forEach(script => {
+                const textNode = script.firstChild;
+                allText += textNode.textContent.trim() + '\n\n';
+            });
+            
+            navigator.clipboard.writeText(allText).then(function() {
+                showCopyNotice();
+                alert('所有录音脚本已复制到剪贴板！');
+            }).catch(function(err) {
+                console.error('复制失败:', err);
+            });
+        }
+        
+        // 页面加载时的提示
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (confirm('是否需要查看录音脚本使用说明？')) {
+                    alert('使用说明：\n\n1. 点击任意文本框可复制内容\n2. 建议按顺序录制不同类型的内容\n3. 注意语调和情感的变化\n4. 每段录音5-30秒为宜\n5. 录制完成后可以在语音克隆页面上传');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

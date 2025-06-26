@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniMax语音克隆设置 - 礼明老师</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .voice-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .step-card {
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .api-config {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: monospace;
+            margin-bottom: 1rem;
+        }
+        
+        .success-box {
+            background: #f0fdf4;
+            border: 1px solid #22c55e;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .info-box {
+            background: #e0f2fe;
+            border: 1px solid #0891b2;
+            color: #0c4a6e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .voice-sample {
+            background: #f8fafc;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .upload-voice {
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-voice:hover {
+            background: #5b21b6;
+            transform: translateY(-2px);
+        }
+        
+        .test-voice {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+        }
+        
+        .voice-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .voice-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .voice-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .voice-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #22c55e;
+        }
+        
+        .status.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #ef4444;
+        }
+        
+        .status.info {
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #3b82f6;
+        }
+        
+        .minimax-logo {
+            width: 100px;
+            height: 40px;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="voice-container">
+        <a href="/" class="back-link">
+            <i class="fa fa-arrow-left"></i>
+            返回对话界面
+        </a>
+        
+        <div class="upload-header">
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div class="minimax-logo">MiniMax</div>
+                <div>
+                    <h1>🎙️ 礼明老师语音克隆设置</h1>
+                    <p>使用MiniMax平台的快速语音克隆功能</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-box">
+            <strong>🎉 已切换到MiniMax平台！</strong><br>
+            MiniMax提供更好的中文语音克隆效果，支持5秒快速克隆。<br>
+            相比ElevenLabs，MiniMax在中文语音处理方面有明显优势。
+        </div>
+
+        <!-- 第一步：配置MiniMax API -->
+        <div class="step-card">
+            <h2><span class="step-number">1</span>配置MiniMax API</h2>
+            
+            <div class="info-box">
+                <strong>📋 获取API密钥步骤：</strong><br>
+                1. 访问 <a href="https://platform.minimaxi.com/" target="_blank">MiniMax开放平台</a><br>
+                2. 注册并登录账号<br>
+                3. 在控制台获取API Key和Group ID<br>
+                4. 确保账户有足够余额用于语音克隆
+            </div>
+            
+            <div class="api-config">
+                <label for="apiKey">MiniMax API Key:</label>
+                <input type="password" id="apiKey" class="config-input" placeholder="输入您的MiniMax API Key">
+                
+                <label for="groupId">Group ID:</label>
+                <input type="text" id="groupId" class="config-input" placeholder="输入您的Group ID">
+                
+                <button onclick="saveConfig()" class="upload-voice">
+                    <i class="fa fa-save"></i> 保存配置
+                </button>
+                <button onclick="testConnection()" class="upload-voice" style="background: #059669;">
+                    <i class="fa fa-plug"></i> 测试连接
+                </button>
+            </div>
+        </div>
+
+        <!-- 第二步：选择语音 -->
+        <div class="step-card">
+            <h2><span class="step-number">2</span>选择语音</h2>
+            
+            <div class="warning-box">
+                <strong>💡 语音选择说明：</strong><br>
+                • 预设语音：MiniMax提供多种高质量中文语音<br>
+                • 自定义语音：上传音频文件快速克隆专属语音<br>
+                • 推荐先试用预设语音，再创建自定义语音
+            </div>
+            
+            <div id="voiceList" class="voice-list">
+                <div class="voice-item" onclick="selectVoice('female-yujie', '御姐音（女）')">
+                    <h4>👩 御姐音（女）</h4>
+                    <p>成熟优雅的女性声音</p>
+                </div>
+                <div class="voice-item" onclick="selectVoice('male-chenwen', '沉稳男声')">
+                    <h4>👨 沉稳男声</h4>
+                    <p>稳重有力的男性声音</p>
+                </div>
+                <div class="voice-item" onclick="selectVoice('female-tianmei', '甜美女声')">
+                    <h4>👧 甜美女声</h4>
+                    <p>清甜可爱的女性声音</p>
+                </div>
+                <div class="voice-item" onclick="selectVoice('presenter_male', '主播男声')">
+                    <h4>🎙️ 主播男声</h4>
+                    <p>专业播音员男声</p>
+                </div>
+            </div>
+            
+            <button onclick="loadVoices()" class="upload-voice" style="background: #0891b2;">
+                <i class="fa fa-refresh"></i> 刷新语音列表
+            </button>
+        </div>
+
+        <!-- 第三步：快速语音克隆 -->
+        <div class="step-card">
+            <h2><span class="step-number">3</span>快速语音克隆</h2>
+            
+            <div class="voice-sample">
+                <i class="fa fa-magic" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                <h3>🚀 5秒快速克隆</h3>
+                <p>上传礼明老师的语音样本，快速创建专属语音</p>
+                
+                <div class="info-box" style="margin-bottom: 1rem;">
+                    <strong>📋 音频要求：</strong><br>
+                    • 格式：MP3、WAV、M4A<br>
+                    • 大小：不超过11MB<br>
+                    • 时长：建议30秒-5分钟<br>
+                    • 质量：清晰无噪音，包含多种语调
+                </div>
+                
+                <input type="file" id="voiceFile" accept=".mp3,.wav,.m4a" style="display: none;">
+                <a href="/voice-clone-guide.html" class="upload-voice" style="text-decoration: none; display: inline-block; background: #8b5cf6;">
+                    <i class="fa fa-book"></i> 录音指导
+                </a>
+                <button class="upload-voice" onclick="document.getElementById('voiceFile').click()">
+                    <i class="fa fa-upload"></i> 选择音频文件
+                </button>
+                <button class="upload-voice" onclick="startRecording()" style="background: #dc2626;">
+                    <i class="fa fa-microphone"></i> 开始录音
+                </button>
+                <button class="upload-voice" onclick="createVoiceClone()" style="background: #22c55e;">
+                    <i class="fa fa-magic"></i> 创建语音克隆
+                </button>
+            </div>
+        </div>
+
+        <!-- 第四步：测试语音 -->
+        <div class="step-card">
+            <h2><span class="step-number">4</span>测试语音效果</h2>
+            
+            <div class="test-voice">
+                <textarea id="testText" placeholder="输入要测试的文本..." style="width: 100%; height: 100px; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem;">你好，我是礼明，打过胜仗、愿意分享。这是语音克隆测试。</textarea>
+                
+                <button onclick="testVoice()" class="upload-voice" style="background: #059669;">
+                    <i class="fa fa-play"></i> 测试语音
+                </button>
+                <button onclick="stopAudio()" class="upload-voice" style="background: #dc2626;">
+                    <i class="fa fa-stop"></i> 停止播放
+                </button>
+                
+                <audio id="audioPlayer" controls style="width: 100%; margin-top: 1rem; display: none;"></audio>
+            </div>
+        </div>
+
+        <!-- 状态显示 -->
+        <div id="statusArea"></div>
+    </div>
+
+    <script>
+        let currentConfig = {};
+        let selectedVoice = null;
+        let audioPlayer = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+
+        // 页面加载时初始化
+        window.onload = async function() {
+            await loadConfig();
+            await loadVoices();
+        };
+
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/voice-config');
+                currentConfig = await response.json();
+                
+                if (currentConfig.apiKey) {
+                    document.getElementById('apiKey').value = currentConfig.apiKey;
+                }
+                if (currentConfig.groupId) {
+                    document.getElementById('groupId').value = currentConfig.groupId;
+                }
+                
+                showStatus('配置已加载', 'success');
+            } catch (error) {
+                console.error('加载配置失败:', error);
+                showStatus('加载配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const groupId = document.getElementById('groupId').value.trim();
+            
+            if (!apiKey) {
+                showStatus('请输入API Key', 'error');
+                return;
+            }
+            
+            if (!groupId) {
+                showStatus('请输入Group ID', 'error');
+                return;
+            }
+            
+            try {
+                const config = {
+                    platform: 'minimax',
+                    apiKey: apiKey,
+                    groupId: groupId,
+                    voiceId: currentConfig.voiceId || 'female-yujie',
+                    voiceName: currentConfig.voiceName || '御姐音（女）'
+                };
+                
+                const response = await fetch('/api/voice-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentConfig = config;
+                    showStatus('✅ MiniMax配置保存成功！', 'success');
+                } else {
+                    showStatus('保存失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('保存配置失败:', error);
+                showStatus('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        // 测试连接
+        async function testConnection() {
+            if (!currentConfig.apiKey) {
+                showStatus('请先保存配置', 'error');
+                return;
+            }
+            
+            showStatus('🔄 正在测试MiniMax连接...', 'info');
+            
+            try {
+                const response = await fetch('/api/voices');
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('✅ MiniMax连接测试成功！', 'success');
+                    await loadVoices();
+                } else {
+                    showStatus('连接失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('连接测试失败:', error);
+                showStatus('连接失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载语音列表
+        async function loadVoices() {
+            try {
+                const response = await fetch('/api/voices');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayVoices(result.voices);
+                } else {
+                    showStatus('获取语音列表失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('加载语音列表失败:', error);
+                showStatus('加载语音列表失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示语音列表
+        function displayVoices(voices) {
+            const voiceList = document.getElementById('voiceList');
+            voiceList.innerHTML = '';
+            
+            voices.forEach(voice => {
+                const voiceItem = document.createElement('div');
+                voiceItem.className = 'voice-item';
+                voiceItem.onclick = () => selectVoice(voice.voice_id, voice.name);
+                
+                const icon = voice.category === '女声' ? '👩' : 
+                           voice.category === '男声' ? '👨' : 
+                           voice.type === 'custom' ? '🎭' : '🎙️';
+                
+                voiceItem.innerHTML = `
+                    <h4>${icon} ${voice.name}</h4>
+                    <p>${voice.category || '预设语音'}</p>
+                    ${voice.type === 'custom' ? '<span style="color: #22c55e;">✨ 自定义</span>' : ''}
+                `;
+                
+                voiceList.appendChild(voiceItem);
+            });
+        }
+
+        // 选择语音
+        function selectVoice(voiceId, voiceName) {
+            selectedVoice = { id: voiceId, name: voiceName };
+            
+            // 更新UI
+            document.querySelectorAll('.voice-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.closest('.voice-item').classList.add('selected');
+            
+            // 保存到配置
+            currentConfig.voiceId = voiceId;
+            currentConfig.voiceName = voiceName;
+            
+            showStatus(`已选择语音: ${voiceName}`, 'success');
+        }
+
+        // 开始录音
+        async function startRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                return;
+            }
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                recordedChunks = [];
+                
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(blob);
+                    
+                    // 创建下载链接
+                    const a = document.createElement('a');
+                    a.href = audioUrl;
+                    a.download = `礼明老师语音样本_${Date.now()}.webm`;
+                    a.click();
+                    
+                    showStatus('录音完成，文件已下载', 'success');
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                showStatus('🎙️ 录音中...点击停止录音', 'info');
+            } catch (error) {
+                console.error('录音失败:', error);
+                showStatus('录音失败: ' + error.message, 'error');
+            }
+        }
+
+        // 创建语音克隆
+        async function createVoiceClone() {
+            const voiceFile = document.getElementById('voiceFile').files[0];
+            if (!voiceFile) {
+                showStatus('请先选择音频文件', 'error');
+                return;
+            }
+            
+            if (!currentConfig.apiKey) {
+                showStatus('请先配置并保存API Key', 'error');
+                return;
+            }
+            
+            // 检查文件大小
+            if (voiceFile.size > 11 * 1024 * 1024) {
+                showStatus(`文件过大: ${(voiceFile.size / 1024 / 1024).toFixed(1)}MB，请选择11MB以内的文件`, 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('voiceSamples', voiceFile);
+            formData.append('voiceName', '礼明老师');
+            formData.append('voiceDescription', '礼明老师的专属语音克隆');
+            
+            showStatus('🔄 正在创建语音克隆，请稍候...', 'info');
+            
+            try {
+                const response = await fetch('/api/create-voice', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ 语音克隆创建成功！语音ID: ${result.voiceId}`, 'success');
+                    await loadVoices();
+                    selectVoice(result.voiceId, '礼明老师（自定义）');
+                } else {
+                    showStatus('创建失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('创建语音克隆失败:', error);
+                showStatus('创建失败: ' + error.message, 'error');
+            }
+        }
+
+        // 测试语音
+        async function testVoice() {
+            const text = document.getElementById('testText').value.trim();
+            if (!text) {
+                showStatus('请输入测试文本', 'error');
+                return;
+            }
+            
+            if (!currentConfig.apiKey) {
+                showStatus('请先配置API Key', 'error');
+                return;
+            }
+            
+            const voiceId = selectedVoice ? selectedVoice.id : currentConfig.voiceId;
+            if (!voiceId) {
+                showStatus('请先选择语音', 'error');
+                return;
+            }
+            
+            showStatus('🔄 正在生成语音...', 'info');
+            
+            try {
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, voiceId: voiceId })
+                });
+                
+                if (response.ok) {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+                    audioPlayer.play();
+                    
+                    showStatus('✅ 语音生成成功！', 'success');
+                } else {
+                    const error = await response.json();
+                    showStatus('语音生成失败: ' + error.error, 'error');
+                }
+            } catch (error) {
+                console.error('语音测试失败:', error);
+                showStatus('语音测试失败: ' + error.message, 'error');
+            }
+        }
+
+        // 停止音频
+        function stopAudio() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+        }
+
+        // 显示状态
+        function showStatus(message, type) {
+            const statusArea = document.getElementById('statusArea');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            
+            statusArea.innerHTML = '';
+            statusArea.appendChild(statusDiv);
+            
+            // 5秒后自动消失
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.parentNode.removeChild(statusDiv);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 
