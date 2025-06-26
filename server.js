@@ -1178,6 +1178,17 @@ app.post('/api/minimax/synthesize', async (req, res) => {
       // 如果返回的是URL
       const audioResponse = await fetch(result.data.audio);
       const audioBuffer = await audioResponse.buffer();
+      
+      // 读取配置以设置响应头
+      let config = {};
+      try {
+        if (fs.existsSync(voiceConfigFile)) {
+          config = await fs.readJson(voiceConfigFile);
+        }
+      } catch (configError) {
+        console.error('读取配置失败:', configError);
+      }
+      
       res.set({
         'Content-Type': 'audio/mpeg',
         'Content-Length': audioBuffer.length,

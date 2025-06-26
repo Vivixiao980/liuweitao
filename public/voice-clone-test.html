@@ -3,565 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>语音克隆测试 - 礼明老师智能体</title>
+    <title>语音克隆功能测试</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .test-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
         .test-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border-left: 5px solid #4facfe;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
-
-        .test-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
+        .test-section h3 {
+            margin-bottom: 1rem;
+            color: #1e293b;
         }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
         .status {
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
             font-weight: 500;
         }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .status.success { background: #dcfce7; color: #166534; }
+        .status.error { background: #fef2f2; color: #dc2626; }
+        .status.warning { background: #fef3c7; color: #d97706; }
+        .status.info { background: #dbeafe; color: #2563eb; }
+        .test-button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
         }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .test-button:hover {
+            background: #5048e5;
+            transform: translateY(-1px);
         }
-
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .test-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-
-        .clone-info {
-            background: #e7f3ff;
-            border: 2px solid #4facfe;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+        .result-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
         }
-
-        .clone-info h3 {
-            color: #4facfe;
-            margin-bottom: 15px;
+        .audio-player {
+            margin: 1rem 0;
         }
-
-        .clone-detail {
+        .clone-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 5px 0;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin: 0.5rem 0;
         }
-
-        .clone-detail strong {
-            color: #333;
+        .clone-info {
+            flex: 1;
         }
-
-        .audio-player {
-            width: 100%;
-            margin-top: 15px;
-            border-radius: 10px;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4facfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .back-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            padding: 10px 20px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .back-btn:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .clone-actions {
+            display: flex;
+            gap: 0.5rem;
         }
     </style>
 </head>
 <body>
-    <a href="/" class="back-btn">← 返回首页</a>
-    
-    <div class="container">
-        <div class="header">
-            <h1>🎤 语音克隆测试</h1>
-            <p>测试真实的语音克隆功能</p>
-        </div>
+    <div class="test-container">
+        <h1><i class="fa fa-microphone"></i> 语音克隆功能测试</h1>
         
-        <div class="content">
-            <!-- 当前语音克隆状态 -->
-            <div class="test-section">
-                <h2>📊 当前语音克隆状态</h2>
-                <div id="cloneStatus">
-                    <div class="loading"></div> 正在加载语音克隆信息...
-                </div>
-            </div>
+        <!-- 系统状态检查 -->
+        <div class="test-section">
+            <h3><i class="fa fa-heartbeat"></i> 系统状态检查</h3>
+            <button class="test-button" onclick="checkSystemStatus()">检查系统状态</button>
+            <div id="systemStatus"></div>
+        </div>
 
-            <!-- 语音克隆测试 -->
-            <div class="test-section">
-                <h2>🧪 语音合成测试</h2>
-                <div class="form-group">
-                    <label for="testText">测试文本：</label>
-                    <textarea id="testText" class="form-control" placeholder="输入要合成的文本...">你好，我是礼明老师。这是使用语音克隆技术生成的声音，听起来是否和我的原声相似？</textarea>
-                </div>
-                
-                <button class="btn btn-primary" onclick="testVoiceClone()">
-                    🎵 测试语音克隆
-                </button>
-                
-                <button class="btn btn-success" onclick="testOriginalVoice()">
-                    🎙️ 播放原始样本
-                </button>
-                
-                <div id="testResult"></div>
-            </div>
+        <!-- MiniMax配置检查 -->
+        <div class="test-section">
+            <h3><i class="fa fa-cog"></i> MiniMax配置检查</h3>
+            <button class="test-button" onclick="checkMiniMaxConfig()">检查配置</button>
+            <div id="configStatus"></div>
+        </div>
 
-            <!-- 语音克隆重新创建 -->
-            <div class="test-section">
-                <h2>🔄 重新创建语音克隆</h2>
-                <p style="margin-bottom: 20px; color: #666;">
-                    如果当前的语音克隆效果不理想，可以尝试重新创建。
-                </p>
-                
-                <div class="form-group">
-                    <label for="newCloneName">新克隆名称：</label>
-                    <input type="text" id="newCloneName" class="form-control" placeholder="输入新的语音克隆名称..." value="礼明-增强版">
-                </div>
-                
-                <div class="form-group">
-                    <label for="newCloneDesc">描述（可选）：</label>
-                    <input type="text" id="newCloneDesc" class="form-control" placeholder="描述这个语音克隆的特点..." value="基于高质量样本的语音克隆">
-                </div>
-                
-                <button class="btn btn-warning" onclick="recreateVoiceClone()">
-                    🔄 重新创建语音克隆
-                </button>
-                
-                <div id="recreateResult"></div>
-            </div>
+        <!-- API权限测试 -->
+        <div class="test-section">
+            <h3><i class="fa fa-key"></i> API权限测试</h3>
+            <button class="test-button" onclick="testAPIPermissions()">测试权限</button>
+            <div id="permissionStatus"></div>
+        </div>
 
-            <!-- API 调试信息 -->
-            <div class="test-section">
-                <h2>🔧 API 调试信息</h2>
-                <button class="btn btn-primary" onclick="checkAPIStatus()">
-                    📡 检查 API 状态
-                </button>
-                
-                <div id="apiStatus"></div>
-            </div>
+        <!-- 语音克隆列表 -->
+        <div class="test-section">
+            <h3><i class="fa fa-list"></i> 语音克隆列表</h3>
+            <button class="test-button" onclick="loadVoiceClones()">刷新列表</button>
+            <div id="voiceClonesList"></div>
+        </div>
+
+        <!-- 语音合成测试 -->
+        <div class="test-section">
+            <h3><i class="fa fa-volume-up"></i> 语音合成测试</h3>
+            <input type="text" id="testText" placeholder="输入测试文本..." value="你好，我是礼明老师，很高兴为您服务！" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 1rem;">
+            <br>
+            <button class="test-button" onclick="testVoiceSynthesis()">测试语音合成</button>
+            <button class="test-button" onclick="testWebSpeech()">测试Web Speech</button>
+            <div id="synthesisResult"></div>
+        </div>
+
+        <!-- 快速修复工具 -->
+        <div class="test-section">
+            <h3><i class="fa fa-wrench"></i> 快速修复工具</h3>
+            <button class="test-button" onclick="resetVoiceConfig()">重置语音配置</button>
+            <button class="test-button" onclick="clearCache()">清除缓存</button>
+            <button class="test-button" onclick="switchToWebSpeech()">切换到Web Speech</button>
+            <div id="fixResult"></div>
         </div>
     </div>
 
     <script>
-        // 页面加载时获取语音克隆状态
-        window.onload = function() {
-            loadCloneStatus();
-        };
+        // 系统状态检查
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            statusDiv.innerHTML = '<div class="status info">正在检查系统状态...</div>';
+            
+            try {
+                const response = await fetch('/api/voice-config');
+                const config = await response.json();
+                
+                let html = '<div class="status success">✅ 服务器运行正常</div>';
+                html += `<div class="result-box">当前配置：\n${JSON.stringify(config, null, 2)}</div>`;
+                
+                statusDiv.innerHTML = html;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 系统检查失败: ${error.message}</div>`;
+            }
+        }
 
-        // 加载语音克隆状态
-        async function loadCloneStatus() {
+        // MiniMax配置检查
+        async function checkMiniMaxConfig() {
+            const statusDiv = document.getElementById('configStatus');
+            statusDiv.innerHTML = '<div class="status info">正在检查MiniMax配置...</div>';
+            
+            try {
+                const response = await fetch('/api/voice-config');
+                const config = await response.json();
+                
+                let issues = [];
+                let warnings = [];
+                
+                if (!config.apiKey) {
+                    issues.push('缺少API密钥');
+                } else if (config.apiKey.startsWith('eyJ')) {
+                    issues.push('API密钥格式错误（JWT令牌，需要sk-开头的标准密钥）');
+                } else if (!config.apiKey.startsWith('sk-')) {
+                    warnings.push('API密钥格式可能不正确（建议使用sk-开头的密钥）');
+                }
+                
+                if (!config.groupId) {
+                    issues.push('缺少Group ID');
+                }
+                
+                let html = '';
+                if (issues.length === 0) {
+                    html += '<div class="status success">✅ 配置检查通过</div>';
+                } else {
+                    html += '<div class="status error">❌ 配置存在问题:</div>';
+                    issues.forEach(issue => {
+                        html += `<div class="status error">• ${issue}</div>`;
+                    });
+                }
+                
+                warnings.forEach(warning => {
+                    html += `<div class="status warning">⚠️ ${warning}</div>`;
+                });
+                
+                html += `<div class="result-box">完整配置：\n${JSON.stringify(config, null, 2)}</div>`;
+                
+                statusDiv.innerHTML = html;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 配置检查失败: ${error.message}</div>`;
+            }
+        }
+
+        // API权限测试
+        async function testAPIPermissions() {
+            const statusDiv = document.getElementById('permissionStatus');
+            statusDiv.innerHTML = '<div class="status info">正在测试API权限...</div>';
+            
+            try {
+                // 测试语音合成
+                const ttsResponse = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: '测试' })
+                });
+                
+                let html = '';
+                if (ttsResponse.ok) {
+                    html += '<div class="status success">✅ 语音合成权限正常</div>';
+                } else {
+                    const errorData = await ttsResponse.json();
+                    html += `<div class="status error">❌ 语音合成失败: ${errorData.error}</div>`;
+                }
+                
+                // 测试语音列表获取
+                const voicesResponse = await fetch('/api/voices');
+                if (voicesResponse.ok) {
+                    const voicesData = await voicesResponse.json();
+                    html += '<div class="status success">✅ 语音列表获取正常</div>';
+                    html += `<div class="status info">可用语音数量: ${voicesData.voices?.length || 0}</div>`;
+                } else {
+                    html += '<div class="status error">❌ 语音列表获取失败</div>';
+                }
+                
+                statusDiv.innerHTML = html;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 权限测试失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载语音克隆列表
+        async function loadVoiceClones() {
+            const listDiv = document.getElementById('voiceClonesList');
+            listDiv.innerHTML = '<div class="status info">正在加载语音克隆列表...</div>';
+            
             try {
                 const response = await fetch('/api/voice-clones');
                 const data = await response.json();
                 
-                const statusDiv = document.getElementById('cloneStatus');
-                
                 if (data.success && data.clones.length > 0) {
-                    const clone = data.clones[data.clones.length - 1]; // 获取最新的克隆
-                    statusDiv.innerHTML = `
-                        <div class="clone-info">
-                            <h3>🎯 当前活跃的语音克隆</h3>
-                            <div class="clone-detail">
-                                <span>名称：</span>
-                                <strong>${clone.name}</strong>
-                            </div>
-                            <div class="clone-detail">
-                                <span>ID：</span>
-                                <strong>${clone.id}</strong>
-                            </div>
-                            <div class="clone-detail">
-                                <span>创建时间：</span>
-                                <strong>${new Date(clone.created_time).toLocaleString()}</strong>
-                            </div>
-                            <div class="clone-detail">
-                                <span>样本数量：</span>
-                                <strong>${clone.samples_count} 个</strong>
-                            </div>
-                            <div class="clone-detail">
-                                <span>状态：</span>
-                                <strong style="color: #28a745;">${clone.status === 'ready' ? '✅ 就绪' : '⏳ 处理中'}</strong>
-                            </div>
-                            <div class="clone-detail">
-                                <span>类型：</span>
-                                <strong>${clone.is_real_clone ? '🎯 真实克隆' : '📝 模拟克隆'}</strong>
-                            </div>
-                            ${clone.fallback_reason ? `
-                                <div class="status error" style="margin-top: 10px;">
-                                    ⚠️ ${clone.fallback_reason}
+                    let html = '<div class="status success">✅ 找到语音克隆</div>';
+                    data.clones.forEach(clone => {
+                        html += `
+                            <div class="clone-item">
+                                <div class="clone-info">
+                                    <strong>${clone.name}</strong> (${clone.id})
+                                    <br>
+                                    <small>创建时间: ${new Date(clone.created_time).toLocaleString()}</small>
+                                    <br>
+                                    <small>状态: ${clone.is_real_clone ? '真实克隆' : '本地样本'}</small>
                                 </div>
-                            ` : ''}
-                        </div>
-                    `;
+                                <div class="clone-actions">
+                                    <button class="test-button" onclick="testClone('${clone.id}', '${clone.name}')">测试</button>
+                                    <button class="test-button" onclick="setAsDefault('${clone.id}', '${clone.name}')">设为默认</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listDiv.innerHTML = html;
                 } else {
-                    statusDiv.innerHTML = `
-                        <div class="status error">
-                            ❌ 没有找到语音克隆。请先在<a href="/voice-clone-upload.html">语音克隆页面</a>上传语音样本并创建克隆。
-                        </div>
-                    `;
+                    listDiv.innerHTML = '<div class="status warning">⚠️ 没有找到语音克隆</div>';
                 }
             } catch (error) {
-                document.getElementById('cloneStatus').innerHTML = `
-                    <div class="status error">
-                        ❌ 加载语音克隆状态失败: ${error.message}
-                    </div>
-                `;
+                listDiv.innerHTML = `<div class="status error">❌ 加载失败: ${error.message}</div>`;
             }
         }
 
-        // 测试语音克隆
-        async function testVoiceClone() {
-            const text = document.getElementById('testText').value.trim();
-            const resultDiv = document.getElementById('testResult');
+        // 测试语音合成
+        async function testVoiceSynthesis() {
+            const text = document.getElementById('testText').value;
+            const resultDiv = document.getElementById('synthesisResult');
             
-            if (!text) {
-                resultDiv.innerHTML = '<div class="status error">❌ 请输入要合成的文本</div>';
+            if (!text.trim()) {
+                resultDiv.innerHTML = '<div class="status error">❌ 请输入测试文本</div>';
                 return;
             }
             
-            resultDiv.innerHTML = '<div class="status info"><div class="loading"></div> 正在生成语音克隆...</div>';
+            resultDiv.innerHTML = '<div class="status info">正在生成语音...</div>';
             
             try {
-                const response = await fetch('/api/minimax/synthesize', {
+                const response = await fetch('/api/text-to-speech', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ text })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
                 });
                 
                 if (response.ok) {
-                    const isVoiceClone = response.headers.get('X-Voice-Clone') === 'true';
                     const audioBlob = await response.blob();
                     const audioUrl = URL.createObjectURL(audioBlob);
                     
-                    resultDiv.innerHTML = `
-                        <div class="status success">
-                            ✅ 语音合成成功！${isVoiceClone ? '使用了真实语音克隆' : '使用了预设语音'}
-                        </div>
-                        <audio controls class="audio-player">
-                            <source src="${audioUrl}" type="audio/mpeg">
-                            您的浏览器不支持音频播放。
-                        </audio>
-                    `;
-                } else if (response.status === 503) {
-                    // 语音克隆服务不可用，使用浏览器语音合成
-                    const data = await response.json();
-                    resultDiv.innerHTML = `
-                        <div class="status error">
-                            ⚠️ ${data.message}
-                        </div>
-                    `;
+                    let html = '<div class="status success">✅ 语音生成成功</div>';
+                    html += `<audio controls class="audio-player" style="width: 100%;">
+                                <source src="${audioUrl}" type="audio/mpeg">
+                                您的浏览器不支持音频播放
+                             </audio>`;
                     
-                    // 使用浏览器语音合成作为备选
-                    useBrowserSpeech(text);
+                    resultDiv.innerHTML = html;
                 } else {
-                    const data = await response.json();
-                    throw new Error(data.error || '语音合成失败');
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `<div class="status error">❌ 语音生成失败: ${errorData.error}</div>`;
                 }
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="status error">
-                        ❌ 语音合成失败: ${error.message}
-                    </div>
-                `;
-                
-                // 尝试使用浏览器语音合成作为备选
-                useBrowserSpeech(text);
+                resultDiv.innerHTML = `<div class="status error">❌ 请求失败: ${error.message}</div>`;
             }
         }
 
-        // 使用浏览器语音合成
-        function useBrowserSpeech(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-CN';
-                utterance.rate = 0.9;
-                utterance.pitch = 1.0;
-                
-                const resultDiv = document.getElementById('testResult');
-                resultDiv.innerHTML += `
-                    <div class="status info" style="margin-top: 10px;">
-                        🔊 正在使用浏览器语音合成作为备选方案...
-                    </div>
-                `;
-                
-                speechSynthesis.speak(utterance);
-            }
-        }
-
-        // 播放原始语音样本
-        async function testOriginalVoice() {
-            const resultDiv = document.getElementById('testResult');
+        // 测试Web Speech
+        async function testWebSpeech() {
+            const text = document.getElementById('testText').value;
+            const resultDiv = document.getElementById('synthesisResult');
             
-            try {
-                // 获取语音样本列表
-                const response = await fetch('/api/voice-samples');
-                const data = await response.json();
-                
-                if (data.success && data.samples.length > 0) {
-                    const latestSample = data.samples[data.samples.length - 1];
-                    const audioUrl = `/api/play-voice-sample/${latestSample.filename}`;
-                    
-                    resultDiv.innerHTML = `
-                        <div class="status success">
-                            ✅ 正在播放原始语音样本: ${latestSample.sampleName || latestSample.originalname}
-                        </div>
-                        <audio controls class="audio-player" autoplay>
-                            <source src="${audioUrl}" type="audio/mpeg">
-                            您的浏览器不支持音频播放。
-                        </audio>
-                    `;
-                } else {
-                    resultDiv.innerHTML = '<div class="status error">❌ 没有找到语音样本</div>';
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="status error">❌ 播放原始样本失败: ${error.message}</div>`;
-            }
-        }
-
-        // 重新创建语音克隆
-        async function recreateVoiceClone() {
-            const cloneName = document.getElementById('newCloneName').value.trim();
-            const description = document.getElementById('newCloneDesc').value.trim();
-            const resultDiv = document.getElementById('recreateResult');
-            
-            if (!cloneName) {
-                resultDiv.innerHTML = '<div class="status error">❌ 请输入语音克隆名称</div>';
+            if (!text.trim()) {
+                resultDiv.innerHTML = '<div class="status error">❌ 请输入测试文本</div>';
                 return;
             }
             
-            resultDiv.innerHTML = '<div class="status info"><div class="loading"></div> 正在重新创建语音克隆...</div>';
-            
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                utterance.onstart = () => {
+                    resultDiv.innerHTML = '<div class="status info">🔊 正在播放Web Speech语音...</div>';
+                };
+                
+                utterance.onend = () => {
+                    resultDiv.innerHTML = '<div class="status success">✅ Web Speech播放完成</div>';
+                };
+                
+                utterance.onerror = (event) => {
+                    resultDiv.innerHTML = `<div class="status error">❌ Web Speech错误: ${event.error}</div>`;
+                };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                resultDiv.innerHTML = '<div class="status error">❌ 浏览器不支持Web Speech API</div>';
+            }
+        }
+
+        // 测试特定克隆
+        async function testClone(cloneId, cloneName) {
             try {
-                const response = await fetch('/api/create-voice-clone', {
+                await fetch('/api/set-voice', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        cloneName,
-                        description
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        voiceId: cloneId, 
+                        voiceName: cloneName,
+                        platform: 'custom-clone'
+                    })
+                });
+                
+                document.getElementById('testText').value = `你好，我是${cloneName}，这是语音克隆测试。`;
+                testVoiceSynthesis();
+            } catch (error) {
+                alert('设置语音失败: ' + error.message);
+            }
+        }
+
+        // 设为默认语音
+        async function setAsDefault(cloneId, cloneName) {
+            try {
+                const response = await fetch('/api/set-voice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        voiceId: cloneId, 
+                        voiceName: cloneName,
+                        platform: 'custom-clone'
                     })
                 });
                 
                 const data = await response.json();
-                
                 if (data.success) {
-                    resultDiv.innerHTML = `
-                        <div class="status success">
-                            ✅ ${data.message}
-                        </div>
-                        ${data.warning ? `<div class="status error" style="margin-top: 10px;">⚠️ ${data.warning}</div>` : ''}
-                    `;
-                    
-                    // 重新加载状态
-                    loadCloneStatus();
+                    alert(`✅ 已设置"${cloneName}"为默认语音`);
+                    checkSystemStatus();
                 } else {
-                    resultDiv.innerHTML = `<div class="status error">❌ ${data.error}</div>`;
+                    alert('❌ 设置失败: ' + data.error);
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<div class="status error">❌ 重新创建失败: ${error.message}</div>`;
+                alert('❌ 设置失败: ' + error.message);
             }
         }
 
-        // 检查API状态
-        async function checkAPIStatus() {
-            const statusDiv = document.getElementById('apiStatus');
-            statusDiv.innerHTML = '<div class="status info"><div class="loading"></div> 正在检查API状态...</div>';
+        // 重置语音配置
+        async function resetVoiceConfig() {
+            const resultDiv = document.getElementById('fixResult');
             
             try {
-                // 检查语音配置
-                const configResponse = await fetch('/api/voice-config');
-                const configData = await configResponse.json();
+                const response = await fetch('/api/set-voice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        voiceId: 'female-yujie', 
+                        voiceName: '御姐音（女）',
+                        platform: 'minimax'
+                    })
+                });
                 
-                // 检查语音样本
-                const samplesResponse = await fetch('/api/voice-samples');
-                const samplesData = await samplesResponse.json();
-                
-                // 检查语音克隆
-                const clonesResponse = await fetch('/api/voice-clones');
-                const clonesData = await clonesResponse.json();
-                
-                statusDiv.innerHTML = `
-                    <div class="clone-info" style="margin-top: 15px;">
-                        <h3>🔧 API 状态报告</h3>
-                        <div class="clone-detail">
-                            <span>语音配置：</span>
-                            <strong style="color: ${configData.platform ? '#28a745' : '#dc3545'};">
-                                ${configData.platform ? `✅ ${configData.platform} - ${configData.voiceName}` : '❌ 未配置'}
-                            </strong>
-                        </div>
-                        <div class="clone-detail">
-                            <span>语音样本：</span>
-                            <strong style="color: ${samplesData.success && samplesData.samples.length > 0 ? '#28a745' : '#dc3545'};">
-                                ${samplesData.success ? `✅ ${samplesData.samples.length} 个样本` : '❌ 无样本'}
-                            </strong>
-                        </div>
-                        <div class="clone-detail">
-                            <span>语音克隆：</span>
-                            <strong style="color: ${clonesData.success && clonesData.clones.length > 0 ? '#28a745' : '#dc3545'};">
-                                ${clonesData.success ? `✅ ${clonesData.clones.length} 个克隆` : '❌ 无克隆'}
-                            </strong>
-                        </div>
-                        <div class="clone-detail">
-                            <span>MiniMax API：</span>
-                            <strong style="color: ${configData.apiKey ? '#28a745' : '#dc3545'};">
-                                ${configData.apiKey ? '✅ 已配置' : '❌ 未配置'}
-                            </strong>
-                        </div>
-                    </div>
-                `;
+                const data = await response.json();
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="status success">✅ 语音配置已重置为默认设置</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ 重置失败: ${data.error}</div>`;
+                }
             } catch (error) {
-                statusDiv.innerHTML = `<div class="status error">❌ 检查API状态失败: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="status error">❌ 重置失败: ${error.message}</div>`;
             }
         }
+
+        // 清除缓存
+        function clearCache() {
+            const resultDiv = document.getElementById('fixResult');
+            
+            // 清除音频缓存
+            speechSynthesis.cancel();
+            
+            // 清除页面缓存
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            resultDiv.innerHTML = '<div class="status success">✅ 缓存已清除</div>';
+        }
+
+        // 切换到Web Speech
+        async function switchToWebSpeech() {
+            const resultDiv = document.getElementById('fixResult');
+            
+            try {
+                const response = await fetch('/api/set-voice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        voiceId: 'web-speech', 
+                        voiceName: 'Web Speech',
+                        platform: 'web-speech'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="status success">✅ 已切换到Web Speech模式</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ 切换失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ 切换失败: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载时自动检查状态
+        window.onload = function() {
+            checkSystemStatus();
+            loadVoiceClones();
+        };
     </script>
 </body>
 </html> 
