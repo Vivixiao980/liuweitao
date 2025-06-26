@@ -17,6 +17,25 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     loadStats();
     setWelcomeTime();
+    
+    // 初始化语音按钮状态
+    setTimeout(() => {
+        syncVoiceToggleState();
+    }, 100);
+    
+    // 添加窗口大小变化监听，确保菜单在桌面端隐藏
+    window.addEventListener('resize', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuBtn = document.getElementById('mobileMenuBtn');
+        
+        if (window.innerWidth > 768 && mobileMenu && mobileMenu.classList.contains('show')) {
+            mobileMenu.classList.remove('show');
+            if (menuBtn) {
+                menuBtn.classList.remove('active');
+                menuBtn.querySelector('i').className = 'fa fa-bars';
+            }
+        }
+    });
 });
 
 function initializeApp() {
@@ -167,17 +186,16 @@ function showLoading(show) {
 // 语音功能
 function toggleVoice() {
     isVoiceEnabled = !isVoiceEnabled;
-    const icon = voiceToggle.querySelector('i');
-    const text = voiceToggle.querySelector('span') || voiceToggle;
+    syncVoiceToggleState();
     
-    if (isVoiceEnabled) {
-        voiceToggle.classList.add('voice-enabled');
-        icon.className = 'fa fa-volume-up';
-        voiceToggle.innerHTML = '<i class="fa fa-volume-up"></i> 语音开启';
-    } else {
-        voiceToggle.classList.remove('voice-enabled');
-        icon.className = 'fa fa-volume-mute';
-        voiceToggle.innerHTML = '<i class="fa fa-volume-mute"></i> 语音关闭';
+    // 如果正在播放语音，停止播放
+    if (!isVoiceEnabled) {
+        speechSynthesis.cancel();
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (audioPlayer) {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+        }
     }
 }
 
@@ -353,4 +371,111 @@ function addExampleQuestions() {
     // 可以在界面上添加快捷问题按钮
     // 这里先预留接口
     return examples;
+}
+
+// 移动端菜单功能
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    
+    if (mobileMenu && menuBtn) {
+        const isShowing = mobileMenu.classList.contains('show');
+        
+        if (isShowing) {
+            // 隐藏菜单
+            mobileMenu.classList.remove('show');
+            menuBtn.classList.remove('active');
+            menuBtn.querySelector('i').className = 'fa fa-bars';
+        } else {
+            // 显示菜单
+            mobileMenu.classList.add('show');
+            menuBtn.classList.add('active');
+            menuBtn.querySelector('i').className = 'fa fa-times';
+        }
+    }
+}
+
+// 点击外部关闭移动端菜单
+document.addEventListener('click', function(event) {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    
+    if (mobileMenu && menuBtn) {
+        const isClickInsideMenu = mobileMenu.contains(event.target);
+        const isClickOnButton = menuBtn.contains(event.target);
+        
+        if (!isClickInsideMenu && !isClickOnButton && mobileMenu.classList.contains('show')) {
+            toggleMobileMenu();
+        }
+    }
+});
+
+// 同步移动端和桌面端的语音按钮状态
+function syncVoiceToggleState() {
+    const desktopToggle = document.getElementById('voiceToggle');
+    const mobileToggle = document.getElementById('mobileVoiceToggle');
+    
+    if (desktopToggle && mobileToggle) {
+        const isEnabled = isVoiceEnabled;
+        const iconClass = isEnabled ? 'fa fa-volume-up' : 'fa fa-volume-mute';
+        const text = isEnabled ? '语音开启' : '语音关闭';
+        
+        // 更新桌面端按钮
+        const desktopIcon = desktopToggle.querySelector('i');
+        const desktopText = desktopToggle.querySelector('.btn-text');
+        if (desktopIcon) desktopIcon.className = iconClass;
+        if (desktopText) desktopText.textContent = text;
+        
+        // 更新移动端按钮
+        const mobileIcon = mobileToggle.querySelector('i');
+        const mobileText = mobileToggle.querySelector('span');
+        if (mobileIcon) mobileIcon.className = iconClass;
+        if (mobileText) mobileText.textContent = text;
+        
+        // 更新按钮状态类
+        if (isEnabled) {
+            desktopToggle.classList.add('voice-enabled');
+            mobileToggle.classList.add('voice-enabled');
+        } else {
+            desktopToggle.classList.remove('voice-enabled');
+            mobileToggle.classList.remove('voice-enabled');
+        }
+    }
+}
+
+// 优化触摸体验 - 防止双击缩放
+document.addEventListener('touchstart', function(event) {
+    if (event.touches.length > 1) {
+        event.preventDefault();
+    }
+});
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+
+// 移动端输入框优化
+if (window.innerWidth <= 768) {
+    // 防止iOS Safari在输入时缩放
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('focus', function() {
+            // 滚动到输入框位置
+            setTimeout(() => {
+                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        });
+        
+        messageInput.addEventListener('blur', function() {
+            // 恢复页面滚动位置
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+        });
+    }
 } 

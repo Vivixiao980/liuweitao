@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#6366f1">
     <title>与礼明老师对话</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,51 +27,80 @@
                     </p>
                 </div>
             </div>
-            <div class="header-actions">
-                <button class="btn-secondary" onclick="exportConversations()">
+            
+            <!-- 移动端菜单按钮 -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+                <i class="fa fa-bars"></i>
+            </button>
+            
+            <!-- 桌面端按钮组 -->
+            <div class="header-actions desktop-actions">
+                <button class="btn-secondary" onclick="exportConversations()" title="导出对话记录">
                     <i class="fa fa-download"></i>
-                    导出记录
+                    <span class="btn-text">导出记录</span>
                 </button>
-                <button class="btn-secondary" onclick="window.open('/admin.html', '_blank')">
-                    <i class="fa fa-cog"></i>
-                    管理后台
-                </button>
-                <button class="btn-secondary" onclick="window.open('/knowledge-upload.html', '_blank')">
+                <button class="btn-secondary" onclick="window.open('/knowledge-upload.html', '_blank')" title="上传知识库文件">
                     <i class="fa fa-upload"></i>
-                    上传知识库
+                    <span class="btn-text">知识库</span>
                 </button>
-                <button class="btn-secondary" onclick="window.open('/voice-clone-upload.html', '_blank')">
+                <button class="btn-secondary" onclick="window.open('/voice-clone-upload.html', '_blank')" title="语音克隆设置">
                     <i class="fa fa-microphone"></i>
-                    语音克隆
+                    <span class="btn-text">语音克隆</span>
                 </button>
-                <button class="btn-secondary" onclick="window.open('/siliconflow-setup.html', '_blank')">
-                    <i class="fa fa-robot"></i>
-                    SiliconFlow AI
-                </button>
-                <button class="btn-secondary" onclick="window.open('/voice-settings.html', '_blank')">
+                <button class="btn-secondary" onclick="toggleVoice()" id="voiceToggle" title="切换语音播放">
                     <i class="fa fa-volume-up"></i>
-                    语音设置
+                    <span class="btn-text">语音开启</span>
                 </button>
-                <button class="btn-secondary" onclick="toggleVoice()" id="voiceToggle">
-                    <i class="fa fa-volume-up"></i>
-                    语音开启
+                <button class="btn-secondary" onclick="window.open('/admin.html', '_blank')" title="管理后台">
+                    <i class="fa fa-cog"></i>
+                    <span class="btn-text">设置</span>
                 </button>
-                <button class="btn-secondary" onclick="window.open('/quick-test.html', '_blank')">
-                    <i class="fa fa-vial"></i>
-                    快速测试
-                </button>
-                <button class="btn-secondary" onclick="window.open('/api-test.html', '_blank')">
-                    <i class="fa fa-bug"></i>
-                    API测试
-                </button>
-                <button class="btn-secondary" onclick="window.open('/system-status.html', '_blank')">
-                    <i class="fa fa-heartbeat"></i>
-                    系统状态
-                </button>
-                <button class="btn-secondary" onclick="window.open('/minimax-diagnostic.html', '_blank')">
-                    <i class="fa fa-stethoscope"></i>
-                    MiniMax诊断
-                </button>
+            </div>
+            
+            <!-- 移动端下拉菜单 -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div class="mobile-menu-grid">
+                    <button class="mobile-menu-item" onclick="exportConversations(); toggleMobileMenu();">
+                        <i class="fa fa-download"></i>
+                        <span>导出记录</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/knowledge-upload.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-upload"></i>
+                        <span>知识库</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/voice-clone-upload.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-microphone"></i>
+                        <span>语音克隆</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="toggleVoice(); toggleMobileMenu();" id="mobileVoiceToggle">
+                        <i class="fa fa-volume-up"></i>
+                        <span>语音开启</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/siliconflow-setup.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-robot"></i>
+                        <span>AI设置</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/voice-settings.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-volume-up"></i>
+                        <span>语音设置</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/admin.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-cog"></i>
+                        <span>管理后台</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/api-test.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-bug"></i>
+                        <span>API测试</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/system-status.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-heartbeat"></i>
+                        <span>系统状态</span>
+                    </button>
+                    <button class="mobile-menu-item" onclick="window.open('/minimax-diagnostic.html', '_blank'); toggleMobileMenu();">
+                        <i class="fa fa-stethoscope"></i>
+                        <span>诊断工具</span>
+                    </button>
+                </div>
             </div>
         </header>
 
