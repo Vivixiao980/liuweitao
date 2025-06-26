@@ -1165,6 +1165,82 @@ app.get('/voice-cloning', (req, res) => {
   res.redirect('/voice-clone-manager.html');
 });
 
+// MiniMax配置API
+app.post('/api/minimax/config', async (req, res) => {
+  try {
+    const { platform, apiKey, groupId, voiceId, voiceName } = req.body;
+    
+    if (!apiKey || !groupId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'API密钥和Group ID是必填项' 
+      });
+    }
+
+    const config = {
+      platform: platform || 'minimax',
+      apiKey: apiKey.trim(),
+      groupId: groupId.trim(),
+      voiceId: voiceId || 'female-yujie',
+      voiceName: voiceName || '礼明老师'
+    };
+
+    // 保存配置
+    saveVoiceConfig(config);
+    
+    res.json({ 
+      success: true, 
+      message: 'MiniMax配置保存成功',
+      config: {
+        platform: config.platform,
+        groupId: config.groupId,
+        voiceId: config.voiceId,
+        voiceName: config.voiceName,
+        apiKeyFormat: config.apiKey.startsWith('sk-') ? 'sk-format' : 'jwt-format'
+      }
+    });
+  } catch (error) {
+    console.error('保存MiniMax配置失败:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '保存配置时发生错误: ' + error.message 
+    });
+  }
+});
+
+// 获取MiniMax配置API
+app.get('/api/minimax/config', async (req, res) => {
+  try {
+    const config = loadVoiceConfig();
+    
+    if (!config) {
+      return res.status(404).json({ 
+        success: false, 
+        error: '配置文件未找到' 
+      });
+    }
+
+    // 返回配置（不包含完整的API密钥）
+    res.json({ 
+      success: true,
+      config: {
+        platform: config.platform,
+        groupId: config.groupId,
+        voiceId: config.voiceId,
+        voiceName: config.voiceName,
+        apiKeyFormat: config.apiKey ? (config.apiKey.startsWith('sk-') ? 'sk-format' : 'jwt-format') : 'not-set',
+        hasApiKey: !!config.apiKey
+      }
+    });
+  } catch (error) {
+    console.error('获取MiniMax配置失败:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '获取配置时发生错误: ' + error.message 
+    });
+  }
+});
+
 // 全局错误处理中间件 (必须放在所有路由和中间件之后)
 app.use((err, req, res, next) => {
   console.error("全局错误处理器捕获到错误:", err);

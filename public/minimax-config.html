@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniMax 配置管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #f1f5f9;
+            border-radius: 15px;
+            background: #fafbfc;
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .config-display {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+
+        .help-text {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .api-key-format {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .api-key-format h4 {
+            color: #0c4a6e;
+            margin-bottom: 10px;
+        }
+
+        .api-key-example {
+            font-family: 'Courier New', monospace;
+            background: #e0f2fe;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 MiniMax 配置管理</h1>
+            <p>配置您的 MiniMax API 以启用语音克隆功能</p>
+        </div>
+
+        <div class="content">
+            <!-- API密钥格式说明 -->
+            <div class="api-key-format">
+                <h4>📋 API密钥格式要求</h4>
+                <p><strong>新格式（推荐）：</strong></p>
+                <div class="api-key-example">sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+                <p><strong>旧格式（JWT令牌）：</strong></p>
+                <div class="api-key-example">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</div>
+                <p class="help-text">如果您使用的是旧格式，建议到MiniMax控制台重新生成新格式的API密钥</p>
+            </div>
+
+            <!-- 当前配置显示 -->
+            <div class="section">
+                <h2 class="section-title">📊 当前配置状态</h2>
+                <button onclick="loadCurrentConfig()" class="btn">🔄 刷新配置</button>
+                <button onclick="testConnection()" class="btn btn-success">🔍 测试连接</button>
+                <div id="currentConfig" class="config-display">点击"刷新配置"查看当前设置</div>
+                <div id="testResult"></div>
+            </div>
+
+            <!-- 配置表单 -->
+            <div class="section">
+                <h2 class="section-title">⚙️ 配置 MiniMax API</h2>
+                <form id="configForm">
+                    <div class="form-group">
+                        <label class="form-label" for="apiKey">API 密钥 *</label>
+                        <input type="text" id="apiKey" class="form-input" placeholder="输入您的 MiniMax API 密钥">
+                        <div class="help-text">从 MiniMax 控制台获取，建议使用 sk- 开头的新格式密钥</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="groupId">Group ID *</label>
+                        <input type="text" id="groupId" class="form-input" placeholder="输入您的 Group ID">
+                        <div class="help-text">在 MiniMax 控制台的项目设置中找到</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="voiceId">默认语音ID</label>
+                        <input type="text" id="voiceId" class="form-input" placeholder="female-yujie">
+                        <div class="help-text">可选，使用预设语音ID或自定义克隆语音ID</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="voiceName">语音名称</label>
+                        <input type="text" id="voiceName" class="form-input" placeholder="礼明老师">
+                        <div class="help-text">可选，为语音设置一个友好的名称</div>
+                    </div>
+
+                    <button type="button" onclick="saveConfig()" class="btn btn-success">💾 保存配置</button>
+                    <button type="button" onclick="resetConfig()" class="btn btn-danger">🔄 重置配置</button>
+                </form>
+                <div id="saveStatus"></div>
+            </div>
+
+            <!-- 快速设置 -->
+            <div class="section">
+                <h2 class="section-title">⚡ 快速操作</h2>
+                <button onclick="generateTestVoice()" class="btn btn-warning">🎤 测试语音合成</button>
+                <button onclick="checkPermissions()" class="btn">🔐 检查权限</button>
+                <button onclick="window.location.href='/voice-clone-manager.html'" class="btn">🎭 语音克隆管理</button>
+                <div id="quickTestResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时自动加载当前配置
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentConfig();
+        });
+
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch('/api/voice-clones');
+                const result = await response.json();
+                
+                const configDiv = document.getElementById('currentConfig');
+                if (result.success) {
+                    // 显示配置摘要（不显示完整API密钥）
+                    configDiv.textContent = JSON.stringify({
+                        platform: "minimax",
+                        apiKeyFormat: result.apiKeyFormat || "检测中...",
+                        groupId: result.groupId || "未设置",
+                        voiceCount: result.voices?.length || 0,
+                        status: "已加载"
+                    }, null, 2);
+                } else {
+                    configDiv.textContent = `配置加载失败: ${result.error}`;
+                }
+            } catch (error) {
+                document.getElementById('currentConfig').textContent = `网络错误: ${error.message}`;
+            }
+        }
+
+        async function testConnection() {
+            const testDiv = document.getElementById('testResult');
+            testDiv.innerHTML = '<div class="loading"></div>正在测试连接...';
+
+            try {
+                const response = await fetch('/api/voice-clones');
+                const result = await response.json();
+                
+                if (result.success) {
+                    testDiv.innerHTML = `<div class="status-message status-success">
+                        ✅ 连接成功！找到 ${result.voices?.length || 0} 个语音配置
+                    </div>`;
+                } else {
+                    testDiv.innerHTML = `<div class="status-message status-error">
+                        ❌ 连接失败: ${result.error}
+                    </div>`;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<div class="status-message status-error">
+                    ❌ 测试失败: ${error.message}
+                </div>`;
+            }
+        }
+
+        async function saveConfig() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const groupId = document.getElementById('groupId').value.trim();
+            const voiceId = document.getElementById('voiceId').value.trim() || 'female-yujie';
+            const voiceName = document.getElementById('voiceName').value.trim() || '礼明老师';
+
+            if (!apiKey || !groupId) {
+                showSaveStatus('请填写必填字段（API密钥和Group ID）', 'error');
+                return;
+            }
+
+            const config = {
+                platform: 'minimax',
+                apiKey: apiKey,
+                groupId: groupId,
+                voiceId: voiceId,
+                voiceName: voiceName
+            };
+
+            try {
+                const response = await fetch('/api/minimax/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSaveStatus('✅ 配置保存成功！', 'success');
+                    loadCurrentConfig(); // 重新加载配置显示
+                } else {
+                    showSaveStatus(`❌ 保存失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showSaveStatus(`❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function resetConfig() {
+            if (confirm('确定要重置配置吗？这将清除所有设置。')) {
+                try {
+                    const defaultConfig = {
+                        platform: 'minimax',
+                        apiKey: '',
+                        groupId: '',
+                        voiceId: 'female-yujie',
+                        voiceName: '礼明老师'
+                    };
+
+                    const response = await fetch('/api/minimax/config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(defaultConfig)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showSaveStatus('✅ 配置已重置', 'success');
+                        // 清空表单
+                        document.getElementById('apiKey').value = '';
+                        document.getElementById('groupId').value = '';
+                        document.getElementById('voiceId').value = 'female-yujie';
+                        document.getElementById('voiceName').value = '礼明老师';
+                        loadCurrentConfig();
+                    } else {
+                        showSaveStatus(`❌ 重置失败: ${result.error}`, 'error');
+                    }
+                } catch (error) {
+                    showSaveStatus(`❌ 重置失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function generateTestVoice() {
+            const testDiv = document.getElementById('quickTestResult');
+            testDiv.innerHTML = '<div class="loading"></div>正在测试语音合成...';
+
+            try {
+                const response = await fetch('/api/synthesize-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: '你好，我是礼明，这是MiniMax语音合成测试。'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.audioUrl) {
+                    testDiv.innerHTML = `<div class="status-message status-success">
+                        ✅ 语音合成成功！<br>
+                        <audio controls style="margin-top: 10px;">
+                            <source src="${result.audioUrl}" type="audio/mpeg">
+                        </audio>
+                    </div>`;
+                } else {
+                    testDiv.innerHTML = `<div class="status-message status-warning">
+                        ⚠️ ${result.message || '语音合成失败，但系统已降级到浏览器内置语音'}
+                    </div>`;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<div class="status-message status-error">
+                    ❌ 测试失败: ${error.message}
+                </div>`;
+            }
+        }
+
+        async function checkPermissions() {
+            const testDiv = document.getElementById('quickTestResult');
+            testDiv.innerHTML = '<div class="loading"></div>正在检查权限...';
+
+            try {
+                // 这里可以调用权限检查API
+                testDiv.innerHTML = `<div class="status-message status-info">
+                    📋 权限检查功能开发中...<br>
+                    请确保您的MiniMax账户有以下权限：<br>
+                    • 语音合成 (Text-to-Speech)<br>
+                    • 语音克隆 (Voice Cloning)<br>
+                    • 文件上传 (File Upload)
+                </div>`;
+            } catch (error) {
+                testDiv.innerHTML = `<div class="status-message status-error">
+                    ❌ 检查失败: ${error.message}
+                </div>`;
+            }
+        }
+
+        function showSaveStatus(message, type) {
+            const statusDiv = document.getElementById('saveStatus');
+            statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html> 
