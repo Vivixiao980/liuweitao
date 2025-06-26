@@ -1129,7 +1129,7 @@ app.post('/api/siliconflow/test', async (req, res) => {
 // 获取语音配置
 app.get('/api/voice-config', async (req, res) => {
     try {
-        if (!fs.existsSync(voiceConfigFile)) {
+        if (!fs.existsSync(minimaxVoiceConfigFile)) {
             return res.json({
                 platform: 'minimax',
                 voiceId: 'male-qn-qingse',
@@ -1137,7 +1137,7 @@ app.get('/api/voice-config', async (req, res) => {
             });
         }
         
-        const config = await fs.readJson(voiceConfigFile);
+        const config = await fs.readJson(minimaxVoiceConfigFile);
         res.json(config);
     } catch (error) {
         console.error('获取语音配置失败:', error);
@@ -1161,15 +1161,15 @@ app.post('/api/set-voice', async (req, res) => {
         }
         
         let config = {};
-        if (fs.existsSync(voiceConfigFile)) {
-            config = await fs.readJson(voiceConfigFile);
+        if (fs.existsSync(minimaxVoiceConfigFile)) {
+            config = await fs.readJson(minimaxVoiceConfigFile);
         }
         
         config.voiceId = voiceId;
         config.voiceName = voiceName || voiceId;
         config.platform = platform || 'minimax';
         
-        await fs.writeJson(voiceConfigFile, config, { spaces: 2 });
+        await fs.writeJson(minimaxVoiceConfigFile, config, { spaces: 2 });
         
         res.json({
             success: true,
