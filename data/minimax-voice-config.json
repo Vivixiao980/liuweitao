@@ -1,8 +1,8 @@
 {
-  "platform": "custom-clone",
+  "platform": "minimax",
   "apiKey": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLnjovmtakiLCJVc2VyTmFtZSI6IueOi-a1qSIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxODQ2MTkxNzY0MzAyNDc5ODY1IiwiUGhvbmUiOiIxMzI3MTczOTg5MiIsIkdyb3VwSUQiOiIxODQ2MTkxNzY0Mjk0MDkxMjU3IiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjUtMDYtMjcgMTA6NDE6MDAiLCJUb2tlblR5cGUiOjEsImlzcyI6Im1pbmltYXgifQ.nEgG14KrkYx49444dSboxeIilyGsQql5f3hLXbDY_aPwD5fNaf_2c6rCTGpp9F0fDimY_VHu5A_fxwQ4ujyQuf7BKWGePeu_ejOMVNln2L8LhMA1PEApMuU6SIDpCeaJFpm1RizoZ6GEYjPhJif2QUYR4ZKXsmfu1mr32EBE0OVq-g3vDQCg9_cWpA3fA0cVDXzTaHH7BRbVplLIYfH-9Xj3wL9bAtYmH-xcsH8UlzOzDjKo6Mevw39gbG__6hYQTch9A8iH0kU8LW05YAtYRxfJ_qAuyhFAhtSx4zXWuX6J4pHT_7sGOmZFw4Pq4UxH9nDvpZ8ZO05jmOWLux0Xiw",
   "groupId": "1846191764294091257",
-  "voiceId": "clone_1750996939552",
-  "voiceName": "礼明（本地克隆）",
+  "voiceId": "liming_voice_1751003600918",
+  "voiceName": "礼明（克隆）",
   "voiceClones": {}
 }

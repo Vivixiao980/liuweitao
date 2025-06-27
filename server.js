@@ -624,6 +624,22 @@ async function generateMiniMaxAudio(text, voiceConfig) {
             const responseData = await response.json();
             console.log('MiniMax API JSON响应:', JSON.stringify(responseData, null, 2));
             
+            // 详细分析响应结构，寻找音频数据
+            console.log('===== 响应结构分析 =====');
+            console.log('顶层字段:', Object.keys(responseData));
+            if (responseData.data) {
+                console.log('data字段内容:', Object.keys(responseData.data));
+                Object.entries(responseData.data).forEach(([key, value]) => {
+                    if (typeof value === 'string') {
+                        console.log(`data.${key}: 字符串，长度=${value.length}, 前50字符=${value.substring(0, 50)}`);
+                    } else if (typeof value === 'object' && value !== null) {
+                        console.log(`data.${key}: 对象，字段=${Object.keys(value)}`);
+                    } else {
+                        console.log(`data.${key}: ${typeof value}, 值=${value}`);
+                    }
+                });
+            }
+            
             // 检查是否有错误
             if (responseData.base_resp && responseData.base_resp.status_code !== 0) {
                 throw new Error(`MiniMax API错误: ${responseData.base_resp.status_msg}`);
@@ -635,6 +651,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
             
             if (responseData.data && responseData.data.audio) {
                 audioData = responseData.data.audio;
+                console.log('✅ 在data.audio中找到音频数据，长度:', audioData.length);
             } else if (responseData.audio) {
                 audioData = responseData.audio;
             } else if (responseData.data && responseData.data.extra_info && responseData.data.extra_info.audio_size > 0) {
@@ -691,10 +708,21 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                     return audioData;
                 }
                 
-                // 如果是base64数据，需要解码保存
+                // 如果是音频数据字符串，需要解码保存
                 if (typeof audioData === 'string' && audioData.length > 100) {
                     try {
-                        const audioBuffer = Buffer.from(audioData, 'base64');
+                        let audioBuffer;
+                        
+                        // 检查数据格式：十六进制还是base64
+                        const isHex = /^[0-9a-fA-F]+$/.test(audioData.substring(0, 100));
+                        
+                        if (isHex) {
+                            console.log('检测到十六进制音频数据，进行转换');
+                            audioBuffer = Buffer.from(audioData, 'hex');
+                        } else {
+                            console.log('检测到base64音频数据，进行转换');
+                            audioBuffer = Buffer.from(audioData, 'base64');
+                        }
                         const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
                         const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
                         
@@ -706,7 +734,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                         
                         fs.writeFileSync(audioPath, audioBuffer);
                         const audioUrl = `/audio/${audioFileName}`;
-                        console.log(`语音合成成功，音频保存到: ${audioUrl}`);
+                        console.log(`✅ MiniMax语音合成成功，音频保存到: ${audioUrl}`);
                         return audioUrl;
                     } catch (decodeError) {
                         console.error('Base64解码失败:', decodeError);
@@ -726,8 +754,19 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                         if (typeof value === 'string' && value.length > 10000) {
                             // 可能是base64编码的音频数据
                             console.log(`发现可能的base64音频数据在: ${currentPath}, 长度: ${value.length}`);
-                            try {
-                                const audioBuffer = Buffer.from(value, 'base64');
+                                                         try {
+                                 let audioBuffer;
+                                 
+                                 // 检查数据格式：十六进制还是base64
+                                 const isHex = /^[0-9a-fA-F]+$/.test(value.substring(0, 100));
+                                 
+                                 if (isHex) {
+                                     console.log(`检测到十六进制音频数据在: ${currentPath}`);
+                                     audioBuffer = Buffer.from(value, 'hex');
+                                 } else {
+                                     console.log(`检测到base64音频数据在: ${currentPath}`);
+                                     audioBuffer = Buffer.from(value, 'base64');
+                                 }
                                 if (audioBuffer.length > 1000) {
                                     const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
                                     const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
@@ -739,7 +778,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                                     
                                     fs.writeFileSync(audioPath, audioBuffer);
                                     const audioUrl = `/audio/${audioFileName}`;
-                                    console.log(`Base64音频解码成功，保存到: ${audioUrl}`);
+                                    console.log(`✅ Base64音频解码成功，保存到: ${audioUrl}`);
                                     return audioUrl;
                                 }
                             } catch (decodeError) {
@@ -755,6 +794,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                 
                 const base64AudioUrl = findBase64Audio(responseData);
                 if (base64AudioUrl) {
+                    console.log('成功通过base64搜索找到音频数据');
                     return base64AudioUrl;
                 }
                 
@@ -793,8 +833,9 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                 }
             }
             
-            // 如果JSON响应没有音频数据，抛出错误
-            throw new Error('API响应中未找到音频数据');
+            // 如果所有方法都没有找到音频数据，抛出错误
+            console.error('所有音频数据提取方法都失败，JSON响应结构:', Object.keys(responseData));
+            throw new Error('API响应中未找到可用的音频数据');
         }
 
         // MiniMax TTS API返回音频文件流
@@ -853,13 +894,19 @@ async function createMiniMaxVoiceClone(audioFiles, voiceConfig) {
         for (const file of audioFiles) {
             console.log(`上传文件: ${file.originalname}, 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
             
+            // 确保文件名有正确的扩展名
+            let filename = file.originalname;
+            if (!filename.toLowerCase().match(/\.(mp3|wav|m4a)$/)) {
+                filename = filename + '.mp3';
+            }
+            
             const formData = new FormData();
             formData.append('file', fs.createReadStream(file.path), {
-                filename: file.originalname,
-                contentType: file.mimetype
+                filename: filename,
+                contentType: file.mimetype || 'audio/mpeg'
             });
-            // 根据官方示例添加purpose参数
-            formData.append('purpose', 'retrieval');
+            // 语音克隆需要使用正确的purpose参数
+            formData.append('purpose', 'voice_clone');
 
             const uploadResponse = await fetch(`https://api.minimaxi.com/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
                 method: 'POST',
