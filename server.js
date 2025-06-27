@@ -566,7 +566,7 @@ app.get('/api/uploads', async (req, res) => {
 });
 
 // MiniMax API配置
-const MINIMAX_API_BASE = 'https://api.minimax.chat';
+const MINIMAX_API_BASE = 'https://api.minimaxi.com';
 
 // MiniMax语音合成函数
 async function generateMiniMaxAudio(text, voiceConfig) {
@@ -600,7 +600,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
         
         console.log('请求参数:', JSON.stringify(payload, null, 2));
 
-        const response = await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
+        const response = await fetch(`https://api.minimaxi.com/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${voiceConfig.apiKey}`,
@@ -620,13 +620,181 @@ async function generateMiniMaxAudio(text, voiceConfig) {
         console.log('响应内容类型:', contentType);
         
         if (contentType && contentType.includes('application/json')) {
-            // 如果返回的是JSON，说明有错误
-            const errorData = await response.json();
-            console.error('MiniMax API返回错误:', JSON.stringify(errorData, null, 2));
+            // MiniMax TTS API可能返回JSON格式的响应，包含音频数据信息
+            const responseData = await response.json();
+            console.log('MiniMax API JSON响应:', JSON.stringify(responseData, null, 2));
             
-            if (errorData.base_resp && errorData.base_resp.status_code !== 0) {
-                throw new Error(`MiniMax API错误: ${errorData.base_resp.status_msg}`);
+            // 检查是否有错误
+            if (responseData.base_resp && responseData.base_resp.status_code !== 0) {
+                throw new Error(`MiniMax API错误: ${responseData.base_resp.status_msg}`);
             }
+            
+            // MiniMax API可能返回不同格式的音频数据
+            // 检查是否有直接的音频数据字段
+            let audioData = null;
+            
+            if (responseData.data && responseData.data.audio) {
+                audioData = responseData.data.audio;
+            } else if (responseData.audio) {
+                audioData = responseData.audio;
+            } else if (responseData.data && responseData.data.extra_info && responseData.data.extra_info.audio_size > 0) {
+                // 如果有音频大小信息，说明有音频，但可能在其他字段
+                console.log('检测到音频信息:', responseData.data.extra_info);
+                
+                // 尝试查找音频字段
+                if (responseData.data.audio_file) {
+                    audioData = responseData.data.audio_file;
+                } else if (responseData.data.file_url) {
+                    audioData = responseData.data.file_url;
+                } else if (responseData.data.audio_path) {
+                    audioData = responseData.data.audio_path;
+                } else if (responseData.data.file_path) {
+                    audioData = responseData.data.file_path;
+                } else if (responseData.data.file_id) {
+                    // 有些API返回file_id，需要单独下载
+                    console.log('发现file_id，尝试下载音频:', responseData.data.file_id);
+                    try {
+                        const downloadUrl = `https://api.minimaxi.com/v1/files/${responseData.data.file_id}/content?GroupId=${voiceConfig.groupId}`;
+                        const downloadResponse = await fetch(downloadUrl, {
+                            headers: {
+                                'Authorization': `Bearer ${voiceConfig.apiKey}`
+                            }
+                        });
+                        
+                        if (downloadResponse.ok && downloadResponse.headers.get('content-type')?.includes('audio')) {
+                            const audioBuffer = await downloadResponse.arrayBuffer();
+                            if (audioBuffer.byteLength > 1000) {
+                                const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                                const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                                
+                                const audioDir = path.dirname(audioPath);
+                                if (!fs.existsSync(audioDir)) {
+                                    fs.mkdirSync(audioDir, { recursive: true });
+                                }
+                                
+                                fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
+                                const audioUrl = `/audio/${audioFileName}`;
+                                console.log(`通过file_id下载音频成功，保存到: ${audioUrl}`);
+                                return audioUrl;
+                            }
+                        }
+                    } catch (downloadError) {
+                        console.error('通过file_id下载音频失败:', downloadError);
+                    }
+                }
+            }
+            
+            if (audioData) {
+                // 如果有音频URL，直接返回
+                if (typeof audioData === 'string' && audioData.startsWith('http')) {
+                    console.log('获得音频URL:', audioData);
+                    return audioData;
+                }
+                
+                // 如果是base64数据，需要解码保存
+                if (typeof audioData === 'string' && audioData.length > 100) {
+                    try {
+                        const audioBuffer = Buffer.from(audioData, 'base64');
+                        const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                        const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                        
+                        // 确保audio目录存在
+                        const audioDir = path.dirname(audioPath);
+                        if (!fs.existsSync(audioDir)) {
+                            fs.mkdirSync(audioDir, { recursive: true });
+                        }
+                        
+                        fs.writeFileSync(audioPath, audioBuffer);
+                        const audioUrl = `/audio/${audioFileName}`;
+                        console.log(`语音合成成功，音频保存到: ${audioUrl}`);
+                        return audioUrl;
+                    } catch (decodeError) {
+                        console.error('Base64解码失败:', decodeError);
+                    }
+                }
+            }
+            
+            // 如果响应成功但没有找到音频数据，检查是否有base64编码的音频数据
+            if (responseData.base_resp && responseData.base_resp.status_code === 0) {
+                console.log('API响应成功但未找到直接音频数据，检查可能的base64编码数据');
+                
+                // 遍历响应数据，寻找可能的base64音频数据
+                const findBase64Audio = (obj, path = '') => {
+                    for (const [key, value] of Object.entries(obj)) {
+                        const currentPath = path ? `${path}.${key}` : key;
+                        
+                        if (typeof value === 'string' && value.length > 10000) {
+                            // 可能是base64编码的音频数据
+                            console.log(`发现可能的base64音频数据在: ${currentPath}, 长度: ${value.length}`);
+                            try {
+                                const audioBuffer = Buffer.from(value, 'base64');
+                                if (audioBuffer.length > 1000) {
+                                    const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                                    const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                                    
+                                    const audioDir = path.dirname(audioPath);
+                                    if (!fs.existsSync(audioDir)) {
+                                        fs.mkdirSync(audioDir, { recursive: true });
+                                    }
+                                    
+                                    fs.writeFileSync(audioPath, audioBuffer);
+                                    const audioUrl = `/audio/${audioFileName}`;
+                                    console.log(`Base64音频解码成功，保存到: ${audioUrl}`);
+                                    return audioUrl;
+                                }
+                            } catch (decodeError) {
+                                console.log(`Base64解码失败 (${currentPath}):`, decodeError.message);
+                            }
+                        } else if (typeof value === 'object' && value !== null) {
+                            const result = findBase64Audio(value, currentPath);
+                            if (result) return result;
+                        }
+                    }
+                    return null;
+                };
+                
+                const base64AudioUrl = findBase64Audio(responseData);
+                if (base64AudioUrl) {
+                    return base64AudioUrl;
+                }
+                
+                // 如果还是没找到，尝试重新以流的方式请求
+                console.log('未找到base64音频数据，尝试重新请求为流式响应');
+                try {
+                    const streamResponse = await fetch(`https://api.minimaxi.com/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'audio/mpeg, application/octet-stream'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (streamResponse.ok && !streamResponse.headers.get('content-type')?.includes('json')) {
+                        const audioBuffer = await streamResponse.arrayBuffer();
+                        if (audioBuffer.byteLength > 1000) {
+                            const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                            const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                            
+                            const audioDir = path.dirname(audioPath);
+                            if (!fs.existsSync(audioDir)) {
+                                fs.mkdirSync(audioDir, { recursive: true });
+                            }
+                            
+                            fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
+                            const audioUrl = `/audio/${audioFileName}`;
+                            console.log(`流式请求成功，音频保存到: ${audioUrl}`);
+                            return audioUrl;
+                        }
+                    }
+                } catch (streamError) {
+                    console.error('流式请求失败:', streamError);
+                }
+            }
+            
+            // 如果JSON响应没有音频数据，抛出错误
+            throw new Error('API响应中未找到音频数据');
         }
 
         // MiniMax TTS API返回音频文件流
@@ -693,10 +861,10 @@ async function createMiniMaxVoiceClone(audioFiles, voiceConfig) {
             // 根据官方示例添加purpose参数
             formData.append('purpose', 'retrieval');
 
-            const uploadResponse = await fetch(`https://api.minimax.chat/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
+            const uploadResponse = await fetch(`https://api.minimaxi.com/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
                 method: 'POST',
                 headers: {
-                    'authority': 'api.minimax.chat',
+                    'authority': 'api.minimaxi.com',
                     'Authorization': `Bearer ${voiceConfig.apiKey}`
                 },
                 body: formData
@@ -733,10 +901,10 @@ async function createMiniMaxVoiceClone(audioFiles, voiceConfig) {
         
         console.log('调用语音克隆接口，参数:', JSON.stringify(clonePayload, null, 2));
 
-        const cloneResponse = await fetch(`https://api.minimax.chat/v1/voice_clone?GroupId=${voiceConfig.groupId}`, {
+        const cloneResponse = await fetch(`https://api.minimaxi.com/v1/voice_clone?GroupId=${voiceConfig.groupId}`, {
             method: 'POST',
             headers: {
-                'authority': 'api.minimax.chat',
+                'authority': 'api.minimaxi.com',
                 'Authorization': `Bearer ${voiceConfig.apiKey}`,
                 'Content-Type': 'application/json'
             },
@@ -1321,6 +1489,53 @@ app.get('/api/minimax/config', async (req, res) => {
   }
 });
 
+// 语音样本上传接口（兼容前端调用）
+app.post('/api/upload-voice-sample', voiceUpload.single('voiceSample'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: '请上传语音文件' });
+        }
+
+        console.log(`上传语音样本: ${req.file.originalname}, 大小: ${(req.file.size / 1024 / 1024).toFixed(2)}MB`);
+        
+        // 保存到本地voice_samples目录
+        const voiceSamplesDir = path.join(__dirname, 'public', 'uploads', 'voice_samples');
+        if (!fs.existsSync(voiceSamplesDir)) {
+            fs.mkdirSync(voiceSamplesDir, { recursive: true });
+        }
+        
+        const fileExtension = path.extname(req.file.originalname);
+        const simplifiedFileName = `voice_sample_${Date.now()}${fileExtension}`;
+        const localFilePath = path.join(voiceSamplesDir, simplifiedFileName);
+        
+        // 复制文件到目标位置
+        fs.copyFileSync(req.file.path, localFilePath);
+        
+        const audioUrl = `/uploads/voice_samples/${simplifiedFileName}`;
+        console.log(`语音样本保存成功: ${audioUrl}`);
+        
+        res.json({
+            success: true,
+            filename: req.file.originalname,
+            simplified_filename: simplifiedFileName,
+            size: req.file.size,
+            audio_url: audioUrl,
+            message: '语音样本上传成功'
+        });
+
+    } catch (error) {
+        console.error('语音样本上传失败:', error);
+        res.status(500).json({ error: `上传失败: ${error.message}` });
+    } finally {
+        // 清理临时文件
+        if (req.file) {
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('删除临时文件失败:', err);
+            });
+        }
+    }
+});
+
 // 文件上传接口（用于语音克隆测试）
 app.post('/api/upload-file', voiceUpload.single('file'), async (req, res) => {
     try {
@@ -1344,10 +1559,10 @@ app.post('/api/upload-file', voiceUpload.single('file'), async (req, res) => {
                 contentType: req.file.mimetype
             });
 
-            const uploadResponse = await fetch(`https://api.minimax.chat/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
+            const uploadResponse = await fetch(`https://api.minimaxi.com/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
                 method: 'POST',
                 headers: {
-                    'authority': 'api.minimax.chat',
+                    'authority': 'api.minimaxi.com',
                     'Authorization': `Bearer ${voiceConfig.apiKey}`,
                     ...formData.getHeaders()
                 },
@@ -1474,10 +1689,10 @@ app.post('/api/create-voice-clone', async (req, res) => {
         
         console.log('调用语音克隆接口，参数:', JSON.stringify(clonePayload, null, 2));
 
-        const cloneResponse = await fetch(`https://api.minimax.chat/v1/voice_clone?GroupId=${voiceConfig.groupId}`, {
+        const cloneResponse = await fetch(`https://api.minimaxi.com/v1/voice_clone?GroupId=${voiceConfig.groupId}`, {
             method: 'POST',
             headers: {
-                'authority': 'api.minimax.chat',
+                'authority': 'api.minimaxi.com',
                 'Authorization': `Bearer ${voiceConfig.apiKey}`,
                 'Content-Type': 'application/json'
             },
@@ -1576,7 +1791,7 @@ app.post('/api/test-synthesis', async (req, res) => {
                 language_boost: "auto"
             };
 
-            const response = await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
+            const response = await fetch(`https://api.minimaxi.com/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${voiceConfig.apiKey}`,
@@ -1642,7 +1857,7 @@ app.post('/api/test-synthesis', async (req, res) => {
                 language_boost: "auto"
             };
 
-            const response = await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
+            const response = await fetch(`https://api.minimaxi.com/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${voiceConfig.apiKey}`,

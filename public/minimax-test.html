@@ -185,14 +185,14 @@
             try {
                 showResult('voiceListResult', '🔄 正在获取语音列表...', 'info');
                 
-                const response = await fetch('/api/minimax/voices');
+                const response = await fetch('/api/voice-clones');
                 const result = await response.json();
                 
                 if (result.success) {
                     const voiceCount = result.voices.length;
                     let voiceInfo = `✅ 成功获取${voiceCount}个语音：<br>`;
                     result.voices.forEach(voice => {
-                        voiceInfo += `• ${voice.name} (${voice.voice_id})<br>`;
+                        voiceInfo += `• ${voice.voice_name || voice.name} (${voice.voice_id})<br>`;
                     });
                     showResult('voiceListResult', voiceInfo, 'success');
                 } else {
@@ -216,25 +216,32 @@
             try {
                 showResult('synthesizeResult', '🔄 正在合成语音...', 'info');
                 
-                const response = await fetch('/api/minimax/synthesize', {
+                const response = await fetch('/api/synthesize-speech', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text, voiceId: voiceId })
                 });
                 
-                if (response.ok) {
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    
-                    const audioPlayer = document.getElementById('audioPlayer');
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.style.display = 'block';
-                    audioPlayer.play();
-                    
-                    showResult('synthesizeResult', '✅ 语音合成成功！正在播放...', 'success');
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.audioUrl) {
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        audioPlayer.src = result.audioUrl;
+                        audioPlayer.style.display = 'block';
+                        audioPlayer.play();
+                        showResult('synthesizeResult', `✅ 语音合成成功！来源: ${result.source}`, 'success');
+                    } else {
+                        showResult('synthesizeResult', `✅ ${result.message}`, 'info');
+                        // 如果是浏览器TTS，使用浏览器语音合成
+                        if (result.source === 'browser' && result.fallback_text) {
+                            const utterance = new SpeechSynthesisUtterance(result.fallback_text);
+                            utterance.lang = 'zh-CN';
+                            speechSynthesis.speak(utterance);
+                        }
+                    }
                 } else {
-                    const error = await response.json();
-                    showResult('synthesizeResult', '❌ 合成失败: ' + error.error, 'error');
+                    showResult('synthesizeResult', '❌ 合成失败: ' + result.error, 'error');
                 }
             } catch (error) {
                 showResult('synthesizeResult', '❌ 合成失败: ' + error.message, 'error');
