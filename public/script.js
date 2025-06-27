@@ -199,65 +199,76 @@ function toggleVoice() {
     }
 }
 
-// 文字转语音 - 支持语音克隆
+// 文字转语音 - 使用MiniMax语音克隆
 async function speakText(text) {
     if (!isVoiceEnabled) return;
     
     // 停止当前播放
     speechSynthesis.cancel();
+    const audioPlayer = document.getElementById('audioPlayer');
+    if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+    }
     
     try {
-        // 首先尝试使用语音克隆API
-        const response = await fetch('/api/text-to-speech', {
+        console.log('开始语音合成:', text);
+        
+        // 使用语音克隆API（会自动使用配置的voiceId）
+        const response = await fetch('/api/synthesize-speech', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({ 
+                text: text,
+                // voiceId会从服务器配置自动获取
+            })
         });
         
-        if (response.ok && response.headers.get('content-type') === 'audio/mpeg') {
-            // 使用语音克隆生成的音频
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('语音合成响应:', data);
             
-            audio.onloadeddata = () => {
-                audio.play().catch(e => {
-                    console.error('语音播放失败:', e);
+            if (data.success && data.audioUrl) {
+                // 使用MiniMax生成的音频
+                audioPlayer.src = data.audioUrl;
+                audioPlayer.onloadeddata = () => {
+                    audioPlayer.play().catch(e => {
+                        console.error('音频播放失败:', e);
+                        fallbackToWebSpeech(text);
+                    });
+                };
+                
+                audioPlayer.onerror = () => {
+                    console.error('音频加载失败');
                     fallbackToWebSpeech(text);
-                });
-            };
-            
-            audio.onerror = () => {
-                console.error('语音文件加载失败');
-                fallbackToWebSpeech(text);
-            };
-            
-            // 清理资源
-            audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-            };
-            
-            return; // 成功使用语音克隆，直接返回
-        } else if (response.status === 503) {
-            // 处理503服务不可用状态，检查是否有fallback标志
-            try {
-                const errorData = await response.json();
-                if (errorData.fallback || errorData.useWebSpeech) {
-                    console.log('语音服务不可用，使用Web Speech API:', errorData.error);
-                    fallbackToWebSpeech(text);
-                    return;
+                };
+                
+                // 显示语音来源信息
+                if (data.source === 'minimax') {
+                    console.log('✅ 使用MiniMax克隆语音播放');
+                } else if (data.source === 'fallback') {
+                    console.log('⚠️ 使用MiniMax默认音色播放');
+                } else if (data.source === 'local_fallback') {
+                    console.log('📁 使用本地样本播放');
                 }
-            } catch (e) {
-                console.error('解析错误响应失败:', e);
+                
+                return; // 成功使用语音合成
+            } else if (data.fallback_text) {
+                // 如果返回了fallback文本，使用Web Speech
+                console.log('使用浏览器TTS播放fallback文本');
+                fallbackToWebSpeech(data.fallback_text);
+                return;
             }
         }
+        
+        console.log('语音合成API调用失败，使用Web Speech备选');
     } catch (error) {
-        console.error('语音克隆调用失败:', error);
+        console.error('语音合成请求失败:', error);
     }
     
-    // 如果语音克隆失败或未配置，回退到Web Speech API
+    // 如果语音合成失败，回退到Web Speech API
     fallbackToWebSpeech(text);
 }
 
