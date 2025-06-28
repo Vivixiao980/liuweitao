@@ -510,6 +510,8 @@ body {
     background: white;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-heavy);
+    color: #003366;
+    font-weight: 500;
 }
 
 .spinner {
