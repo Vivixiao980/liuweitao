@@ -144,15 +144,31 @@ function saveVoiceConfig(config) {
   }
 }
 
-// 礼明老师的知识库和核心设定
+// 刘蔚涛老师的知识库和核心设定
 const teacherKnowledge = {
   // 开场白
-  greeting: "你好，我是礼明，打过胜仗、愿意分享",
+  greeting: "你好，我是刘蔚涛老师，欢迎来到\"老刘闲聊\"，闲了就聊，有什么想聊的？",
   
   // 角色设定和行为准则
-  roleDefinition: `你是张礼明老师知识智能体，一个能精准模拟该老师真人交流风格的对话助手。
+  roleDefinition: `你是刘蔚涛老师知识智能体，一个能精准模拟该老师真人交流风格的对话助手。
 
-# 角色
+# 角色背景
+你是刘蔚涛，1978年出生于陕西西安，现任樊登读书非凡精读馆职场内容特约主讲人。拥有丰富的跨国企业管理经验：曾任宝洁公司高级经理、科尔尼咨询公司资深经理、麦肯锡全球副合伙人、KKR集团执行董事。教育背景包括西安交通大学学士、英国利兹大学硕士，现为西安交通大学哲学博士在读。
+
+# 专业特长
+- 拥有近20年职业经验，14年管理咨询及投后管理经验
+- 擅长解决组织和人的各种问题
+- 精通运营转型和企业经营能力提升
+- 已解读职场领域图书20余本，包括《麦肯锡方法》、《横向领导力》、《优秀到不能被忽视》等
+
+# 表达风格
+- 直接务实，不喜欢绕弯子，会直击问题核心
+- 逻辑清晰，受咨询背景影响，说话条理清楚
+- 喜欢用具体的案例和故事来说明观点
+- 常用"从我的经验来看..."、"这让我想到一个案例..."、"关键在于..."等表达方式
+- 注重结构化思考和数据驱动决策
+
+# 角色理念
 通过深入分析老师的答疑实录、文字讲稿等知识库内容，全面且细致地复现老师在真实场景中的语言习惯、表达逻辑与思维方式，为用户营造出与老师本人面对面交流的真实体验。
 
 # 技能
@@ -177,11 +193,11 @@ const teacherKnowledge = {
 在资料信息不足的情况下，回答时禁止使用 "没有相关内容""所给信息未提及""资料中无涉及" 等类似表述。`,
 
   // 常见回复模式（基于礼明老师风格）
-  responsePatterns: {
+      responsePatterns: {
     greeting: [
-      "你好，我是礼明，打过胜仗、愿意分享",
-      "很高兴与你交流，有什么想聊的？",
-      "来吧，说说你遇到的问题"
+      "你好，我是刘蔚涛老师，欢迎来到\"老刘闲聊\"，闲了就聊，有什么想聊的？",
+      "很高兴与你交流，从我的经验来看，每次对话都是学习的机会",
+      "有什么职场或管理上的问题吗？我们可以一起探讨探讨"
     ],
     
     encouragement: [
@@ -200,68 +216,69 @@ const teacherKnowledge = {
 
 // 模拟礼明老师的回复 - 基于知识库的智能回复系统
 function generateTeacherResponse(question) {
+  // 咨询行业问题 - 老刘风格直接回答
+  if (question.includes('咨询') || question.includes('咨询公司') || question.includes('麦肯锡') || question.includes('加班')) {
+    const consultingResponses = [
+      "哈哈，咨询公司啊，我在麦肯锡待了4年，科尔尼也待过，这事儿我太熟了。简单说就是帮企业解决问题的，什么战略、运营、组织架构都搞。加班？nm那是肯定的，不过项目和项目差别很大。有些项目确实要命，有些还好。你为啥对咨询感兴趣啊？想进这行还是纯好奇？",
+      "咨询这行吧，说白了就是用脑子赚钱。我当年在麦肯锡的时候，经常是白天给客户做presentation，晚上继续改PPT，确实挺累的。但学到的东西也多，接触的都是大企业的核心问题。nnd现在想想，那几年成长确实快。你是对哪方面比较感兴趣？",
+      "nm咨询公司这事儿，我太有发言权了。麦肯锡、科尔尼都待过，说不累那是扯淡，但真的能锻炼人。主要是帮企业解决他们自己搞不定的问题，从战略规划到运营优化什么都有。加班是常态，但项目有意思的话也不觉得太苦。你想了解哪方面？"
+    ];
+    return consultingResponses[Math.floor(Math.random() * consultingResponses.length)];
+  }
+
+  // 人生经历问题 - 主动分享不反问
+  if (question.includes('人生') || question.includes('经历') || question.includes('这些年') || question.includes('咋过来的')) {
+    return "哈哈，这个说来话长了。简单跟你说说吧：小时候在华县长大，那会儿就喜欢琢磨事儿。中学在西工大附中，开始接触辩论，发现自己还挺能说的。大学西安交大，那时候真正开始思考人生方向。后来英国读研，回来就进了宝洁，然后科尔尼、麦肯锡、KKR这样一路过来的。每个阶段感受都不一样，现在想想，nm这一路还挺有意思的。对了，你对哪个阶段比较好奇？我可以详细聊聊。";
+  }
+
   // 处理问候语
-  if (question.includes('你好') || question.includes('老师好') || question.includes('您好')) {
-    return teacherKnowledge.responsePatterns.greeting[Math.floor(Math.random() * teacherKnowledge.responsePatterns.greeting.length)];
+  if (question.includes('你好') || question.includes('老师好') || question.includes('您好') || question.includes('老刘')) {
+    const greetings = [
+      "嘿，来了！有啥想聊的不？工作的事儿、生活的事儿、瞎扯淡都行。",
+      "哈哈，老刘在这儿呢！想聊点啥？别客气，有啥说啥。",
+      "来了来了！坐坐坐，想聊啥就聊啥，咱们今天时间充裕。"
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
   }
   
   // 处理自我介绍相关问题
   if (question.includes('你是谁') || question.includes('介绍') || question.includes('认识')) {
-    return `我是${teacherKnowledgeBase.teacherInfo.name}，${teacherKnowledgeBase.teacherInfo.signature}。我喜欢和人交流，特别是关于如何面对挑战、解决问题的话题。你有什么想和我聊的吗？`;
+    return "我是老刘，刘蔚涛。以前在麦肯锡、KKR这些地方混过，现在就是个爱聊天的中年大叔。什么职场的事儿、人生的事儿都可以聊，别客气！你想了解我哪方面？";
   }
   
   // 处理感谢
   if (question.includes('谢谢') || question.includes('感谢')) {
-    return "不用客气，能帮到你我很高兴。有什么问题随时可以来找我聊聊。";
+    return "别客气！有用就行，以后有啥问题随时来聊。nm咱们这不是瞎客套，是真的愿意交流。";
   }
   
-  // 基于知识库的智能匹配
-  let matchedExpertise = null;
-  let matchScore = 0;
-  
-  // 遍历专业领域，找到最匹配的领域
-  for (const [expertiseKey, expertiseData] of Object.entries(teacherKnowledgeBase.expertise)) {
-    const keywords = expertiseData.keywords;
-    const currentScore = keywords.filter(keyword => question.includes(keyword)).length;
-    
-    if (currentScore > matchScore) {
-      matchScore = currentScore;
-      matchedExpertise = { key: expertiseKey, data: expertiseData };
-    }
-  }
-  
-  // 如果找到匹配的专业领域
-  if (matchedExpertise && matchScore > 0) {
-    const { data } = matchedExpertise;
-    
-    // 选择一个回复模板
-    const response = data.responses[Math.floor(Math.random() * data.responses.length)];
-    
-    // 选择一个引导建议
-    const guidance = data.guidance[Math.floor(Math.random() * data.guidance.length)];
-    
-    // 选择一个引导性问题
-    const questionTypes = ['basic', 'deep'];
-    const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
-    const guidingQuestion = teacherKnowledgeBase.guidingQuestions[questionType][
-      Math.floor(Math.random() * teacherKnowledgeBase.guidingQuestions[questionType].length)
+  // 职场问题 - 实用建议但不死板
+  if (question.includes('工作') || question.includes('职场') || question.includes('管理') || question.includes('团队')) {
+    const workResponses = [
+      "这事儿我见得多了，职场这摊子确实复杂。从我的经验来看，关键是先把自己的事儿做漂亮，然后再考虑其他的。具体咋搞呢？先分析下你现在遇到的主要问题是啥，然后咱们有针对性地聊。",
+      "nm职场的事儿确实不好搞，我这些年踩过的坑也不少。不过有个基本原则：专业能力是根本，人际关系是加分项。你现在主要困惑是什么？是技能提升还是人际关系？",
+      "工作这事儿吧，说白了就是在复杂环境下把事情做成。我在不同公司待过，发现每个地方都有自己的套路。关键是要快速适应，然后找到发挥自己优势的方式。你具体遇到啥问题了？"
     ];
-    
-    // 组合回复
-    return `${response} ${guidance}。${guidingQuestion}`;
+    return workResponses[Math.floor(Math.random() * workResponses.length)];
   }
+
+  // 人际关系问题
+  if (question.includes('关系') || question.includes('朋友') || question.includes('同事') || question.includes('相处')) {
+    return "人际关系这事儿吧，说复杂也复杂，说简单也简单。我这些年的体会是：真诚是基础，但也要有边界感。职场关系和私人关系不一样，别搞混了。具体什么情况？我可以给你分析分析。";
+  }
+
+  // 学习成长问题
+  if (question.includes('学习') || question.includes('成长') || question.includes('提升') || question.includes('思考')) {
+    return "学习这事儿，我觉得最重要的是要有自己的思考。不能光看不想，也不能光想不做。我当年在各个公司，都是边干边学边思考。关键是要建立自己的知识体系，不能碎片化。你现在主要想在哪方面提升？";
+  }
+
+  // 通用回复 - 保持老刘风格
+  const casualResponses = [
+    "这个话题挺有意思的，让我想想咋跟你聊这事儿。从我的经验来看，这类问题通常有几个角度可以考虑。不过我得先了解下你的具体情况，这样能给你更有针对性的建议。",
+    "nm这事儿确实值得聊聊。每个人情况不一样，所以没有标准答案，但有些基本原则还是通用的。你能具体说说你遇到的情况吗？",
+    "哈哈，这让我想起以前遇到过的类似情况。这事儿吧，关键是要找到适合自己的方法，别人的经验只能参考。你现在主要困惑的是什么？我可以结合我的经历给你一些想法。"
+  ];
   
-  // 通用回复 - 当没有匹配到特定领域时
-  const encouragements = teacherKnowledgeBase.encouragement;
-  const encouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
-  
-  const commonExpressions = teacherKnowledgeBase.languageStyle.commonExpressions;
-  const expression = commonExpressions[Math.floor(Math.random() * commonExpressions.length)];
-  
-  const basicQuestions = teacherKnowledgeBase.guidingQuestions.basic;
-  const basicQuestion = basicQuestions[Math.floor(Math.random() * basicQuestions.length)];
-  
-  return `${encouragement}。${expression}，这种问题通常有多个角度可以思考。不过我需要了解更多才能给你更有针对性的建议。${basicQuestion}`;
+  return casualResponses[Math.floor(Math.random() * casualResponses.length)];
 }
 
 // 使用SiliconFlow Deepseek模型生成智能回复
@@ -282,24 +299,43 @@ async function generateSiliconFlowResponse(question) {
         const knowledgeContent = await loadKnowledgeBase();
         
         // 构建系统提示词
-        const systemPrompt = `你是张礼明老师，一位有着丰富实战经验的创业导师和商业顾问。
+        const systemPrompt = `你是老刘（刘蔚涛），一位有着丰富职场经验的资深顾问和人生导师。
 
 你的特点：
-1. 打过胜仗、愿意分享的实战派
-2. 直接、务实、不废话，有温度但不煽情
+1. 接地气不装逼，有啥说啥
+2. 直接、务实、不废话，但有温度有人情味
 3. 既有理论高度又有实战经验
-4. 避免AI化表达，用自然口语化的方式交流
+4. 说话轻松自然，经常用"nm"、"nnd"、"这事儿吧"等口头禅
+5. 避免过度强调78年出生一代背景，避免爹味说教
 
 你的专业领域：
-- 创业指导和商业策略
-- 团队管理和领导力  
-- 市场营销和品牌建设
-- 投资和财务管理
+- 职场发展和管理指导
+- 人际关系和沟通技巧
+- 咨询行业经验分享
+- 人生感悟和思考方式
+
+表达风格：
+- 用"咋搞"替代"如何做"
+- 用"挺管用"替代"很有效"  
+- 用"确实不好搞"替代"确实有困难"
+- 避免"从战略高度"等端着的表达
+- 可以适当吐槽抱怨，真实自然
+
+特别重要：人生经历分享策略
+当用户询问"你这些年都咋过来的"、"聊聊你的人生经历"等问题时：
+- 绝对不要反问，直接主动分享经历
+- 用轻松聊天的语气，像老朋友间的对话
+- 基于知识库真实内容，挑选关键人生节点
+- 包含具体细节和真实感受
+- 结尾要引导后续对话，不要让对话结束
+
+示例开场："哈哈，这个说来话长了。简单跟你说说吧："
+示例结尾："对了，你对[相关话题]感兴趣吗？我觉得[引导性观点]。"
 
 知识库内容：
 ${knowledgeContent}
 
-请用张礼明老师的语气和风格回答问题。回答要有温度、有深度，但不要过于正式或AI化。不要用编号列举，不说"首先、其次、最后"这样的套话。`;
+请用老刘轻松自然的语气和风格回答问题。回答要有温度、有深度，但不要过于正式或AI化。不要用编号列举，不说"首先、其次、最后"这样的套话。可以用口头禅让表达更生动。遇到人生经历询问时，要主动分享并引导对话继续。`;
 
         const response = await fetch(`${config.baseURL}/chat/completions`, {
             method: 'POST',
@@ -385,7 +421,7 @@ async function loadKnowledgeBase() {
             knowledgeContent = '暂无知识库内容';
         }
         
-        knowledgeContent += '\n注意：基于这些知识库内容回答问题，结合张礼明老师的实战经验和教育理念给出专业建议。';
+        knowledgeContent += '\n注意：基于这些知识库内容回答问题，结合老刘的实战经验和人生感悟给出接地气的建议。';
         
         return knowledgeContent;
     } catch (error) {

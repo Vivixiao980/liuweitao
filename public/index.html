@@ -6,114 +6,90 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#6366f1">
-    <title>与礼明老师对话</title>
+    <title>老刘闲聊 - 与刘蔚涛老师对话</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
+        <!-- 品牌标语 -->
+        <div class="brand-header">
+            <h1 class="brand-title">老刘闲聊，闲了就来聊</h1>
+            <p class="brand-subtitle">与刘蔚涛老师深度对话，分享职场智慧与人生感悟</p>
+        </div>
+
         <!-- 头部 -->
         <header class="header">
             <div class="teacher-info">
                 <div class="teacher-avatar">
-                    <img src="teacher-avatar.svg" alt="礼明老师" id="teacherImage">
+                    <img src="liuweitao.png" alt="老刘" id="teacherImage">
+                    <div class="avatar-ring"></div>
                 </div>
                 <div class="teacher-details">
-                    <h1>礼明老师</h1>
+                    <h2>老刘</h2>
+                    <p class="teacher-subtitle">啥都能聊，别客气</p>
                     <p class="teacher-status">
                         <span class="status-dot online"></span>
-                        在线答疑
+                        在线互动中
                     </p>
                 </div>
             </div>
             
-            <!-- 移动端菜单按钮 -->
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">
-                <i class="fa fa-bars"></i>
-            </button>
-            
-            <!-- 桌面端按钮组 -->
-            <div class="header-actions desktop-actions">
-                <button class="btn-secondary" onclick="exportConversations()" title="导出对话记录">
-                    <i class="fa fa-download"></i>
-                    <span class="btn-text">导出记录</span>
-                </button>
-                <button class="btn-secondary" onclick="window.open('/knowledge-upload.html', '_blank')" title="上传知识库文件">
-                    <i class="fa fa-upload"></i>
-                    <span class="btn-text">知识库</span>
-                </button>
-                <button class="btn-secondary" onclick="window.open('/voice-clone-upload.html', '_blank')" title="语音克隆设置">
-                    <i class="fa fa-microphone"></i>
-                    <span class="btn-text">语音克隆</span>
-                </button>
-                <button class="btn-secondary" onclick="toggleVoice()" id="voiceToggle" title="切换语音播放">
+            <!-- 简化的功能按钮 -->
+            <div class="header-actions">
+                <button class="btn-voice" onclick="toggleVoice()" id="voiceToggle" title="切换语音播放">
                     <i class="fa fa-volume-up"></i>
                     <span class="btn-text">语音开启</span>
                 </button>
-                <button class="btn-secondary" onclick="window.open('/admin.html', '_blank')" title="管理后台">
-                    <i class="fa fa-cog"></i>
-                    <span class="btn-text">设置</span>
+                <button class="btn-export" onclick="exportConversations()" title="导出对话记录">
+                    <i class="fa fa-download"></i>
+                    <span class="btn-text">导出记录</span>
                 </button>
             </div>
-            
-            <!-- 移动端下拉菜单 -->
-            <div class="mobile-menu" id="mobileMenu">
-                <div class="mobile-menu-grid">
-                    <button class="mobile-menu-item" onclick="exportConversations(); toggleMobileMenu();">
-                        <i class="fa fa-download"></i>
-                        <span>导出记录</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/knowledge-upload.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-upload"></i>
-                        <span>知识库</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/voice-clone-upload.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-microphone"></i>
-                        <span>语音克隆</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="toggleVoice(); toggleMobileMenu();" id="mobileVoiceToggle">
-                        <i class="fa fa-volume-up"></i>
-                        <span>语音开启</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/siliconflow-setup.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-robot"></i>
-                        <span>AI设置</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/voice-settings.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-volume-up"></i>
-                        <span>语音设置</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/admin.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-cog"></i>
-                        <span>管理后台</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/api-test.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-bug"></i>
-                        <span>API测试</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/system-status.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-heartbeat"></i>
-                        <span>系统状态</span>
-                    </button>
-                    <button class="mobile-menu-item" onclick="window.open('/minimax-diagnostic.html', '_blank'); toggleMobileMenu();">
-                        <i class="fa fa-stethoscope"></i>
-                        <span>诊断工具</span>
-                    </button>
-                </div>
-            </div>
         </header>
+
+        <!-- 推荐问题区域 -->
+        <div class="suggested-questions" id="suggestedQuestions">
+            <h3>💬 随便聊点啥？</h3>
+            <div class="questions-grid">
+                <button class="question-btn" onclick="askQuestion('老刘，你这些年都咋过来的？')">
+                    <i class="fa fa-user"></i>
+                    <span>聊聊人生</span>
+                </button>
+                <button class="question-btn" onclick="askQuestion('刚当管理，完全不知道咋搞，有啥建议不？')">
+                    <i class="fa fa-users"></i>
+                    <span>管理那些事儿</span>
+                </button>
+                <button class="question-btn" onclick="askQuestion('职场关系好复杂，咋处理比较好？')">
+                    <i class="fa fa-handshake"></i>
+                    <span>人际关系</span>
+                </button>
+                <button class="question-btn" onclick="askQuestion('工作压力太大了，心态都搞崩了')">
+                    <i class="fa fa-heart"></i>
+                    <span>心态问题</span>
+                </button>
+                <button class="question-btn" onclick="askQuestion('咨询公司到底是干啥的？天天加班吗？')">
+                    <i class="fa fa-briefcase"></i>
+                    <span>咨询这行</span>
+                </button>
+                <button class="question-btn" onclick="askQuestion('感觉自己思考太浅薄了，咋提升？')">
+                    <i class="fa fa-brain"></i>
+                    <span>思维升级</span>
+                </button>
+            </div>
+        </div>
 
         <!-- 聊天区域 -->
         <main class="chat-container">
             <div class="chat-messages" id="chatMessages">
                 <div class="message teacher-message">
                     <div class="message-avatar">
-                        <img src="teacher-avatar.svg" alt="礼明老师">
+                        <img src="liuweitao.png" alt="老刘">
                     </div>
                     <div class="message-content">
                         <div class="message-text">
-                            你好，我是礼明，打过胜仗、愿意分享
+                            嘿，我是老刘！来了就别客气，想聊啥就聊啥，工作的事儿、生活的事儿、瞎扯淡都行。咋样，有啥想说的不？
                         </div>
                         <div class="message-time" id="welcomeTime"></div>
                     </div>
@@ -125,7 +101,7 @@
                 <div class="chat-input-wrapper">
                     <textarea 
                         id="messageInput" 
-                        placeholder="输入你的问题..."
+                        placeholder="输入你想聊的话题..."
                         rows="1"
                         maxlength="1000"
                     ></textarea>
@@ -144,25 +120,7 @@
         <div class="loading-overlay" id="loadingOverlay">
             <div class="loading-spinner">
                 <div class="spinner"></div>
-                <p>礼明老师正在思考...</p>
-            </div>
-        </div>
-
-        <!-- 统计面板 -->
-        <div class="stats-panel" id="statsPanel">
-            <div class="stats-content">
-                <h3>对话统计</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-number" id="totalChats">0</span>
-                        <span class="stat-label">总对话数</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="totalUsers">0</span>
-                        <span class="stat-label">用户数</span>
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="toggleStats()">关闭</button>
+                <p>刘老师正在思考...</p>
             </div>
         </div>
     </div>
