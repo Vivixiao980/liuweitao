@@ -20,7 +20,7 @@ function initializeApp() {
 function askQuestion(question) {
     const messageInput = document.getElementById('messageInput');
     messageInput.value = question;
-    sendMessage();
+        sendMessage();
 }
 
 // 发送消息
@@ -284,7 +284,7 @@ function playAudio(audioUrl) {
                     if (lastTeacherMessage) {
                         const text = lastTeacherMessage.textContent || lastTeacherMessage.innerText;
                         generateAndPlayAudio(text);
-                    } else {
+        } else {
                         showAudioError('音频播放失败');
                     }
                 }
@@ -385,13 +385,13 @@ function updateVoiceButton() {
     
     if (isVoiceEnabled) {
         voiceToggle.classList.add('voice-enabled');
-        if (btnText) btnText.textContent = '语音关闭';
-        icon.className = 'fa fa-volume-up';  // 修复：语音开启时显示有声图标
+        if (btnText) btnText.textContent = '目前语音开启';
+        icon.className = 'fa fa-volume-off';  // 语音开启时显示静音图标，表示点击后会关闭
         voiceToggle.title = '关闭语音播放';
     } else {
         voiceToggle.classList.remove('voice-enabled');
-        if (btnText) btnText.textContent = '语音开启';
-        icon.className = 'fa fa-volume-off'; // 修复：语音关闭时显示静音图标
+        if (btnText) btnText.textContent = '目前语音关闭';
+        icon.className = 'fa fa-volume-up';   // 语音关闭时显示有声图标，表示点击后会开启
         voiceToggle.title = '开启语音播放';
     }
 }
@@ -589,12 +589,12 @@ function exportConversations() {
     // 创建下载链接
     const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+        const a = document.createElement('a');
+        a.href = url;
     a.download = `老刘闲聊记录_${new Date().toISOString().slice(0,10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
@@ -719,24 +719,24 @@ function isMobile() {
 // 优化移动端体验
 if (isMobile()) {
     // 防止双击缩放
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(event) {
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(event) {
         const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-    
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+
     // 优化输入框体验
     document.addEventListener('DOMContentLoaded', function() {
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.addEventListener('focus', function() {
-                setTimeout(() => {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('focus', function() {
+            setTimeout(() => {
                     messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
-            });
+            }, 300);
+        });
         }
     });
 }
