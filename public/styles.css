@@ -41,12 +41,15 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     background: white;
     box-shadow: var(--shadow-heavy);
-    overflow: hidden;
+    /* 移动端适配：允许滚动和弹性高度 */
+    min-height: 100vh;
+    height: auto;
+    position: relative;
 }
 
 /* 品牌标语区域 */
@@ -529,8 +532,38 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* 响应式设计 */
+/* 移动端优化 */
 @media (max-width: 768px) {
+    body {
+        /* 防止移动端缩放和改善滚动 */
+        -webkit-text-size-adjust: 100%;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+    
+    .container {
+        /* 移动端适配：确保内容可以正常滚动 */
+        height: auto;
+        min-height: 100vh;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .chat-container {
+        /* 移动端：让聊天区域能够适应内容高度 */
+        flex: 1;
+        min-height: 60vh;
+        height: auto;
+    }
+    
+    .chat-messages {
+        /* 移动端：改善滚动体验 */
+        max-height: 60vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 1rem;
+    }
+    
     .brand-header {
         padding: 1.5rem 1rem 1rem;
     }
@@ -616,7 +649,17 @@ body {
     }
 }
 
+/* 超小屏幕优化（手机竖屏） */
 @media (max-width: 480px) {
+    .container {
+        /* 超小屏：确保全屏适配 */
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+        height: auto;
+    }
+    
     .brand-title {
         font-size: 1.5rem;
     }
@@ -625,29 +668,82 @@ body {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
+        padding: 1rem;
     }
     
     .teacher-info {
         justify-content: center;
+        margin-bottom: 1rem;
     }
     
     .header-actions {
         justify-content: center;
+        gap: 1rem;
     }
     
     .questions-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
     }
     
-    .btn-text {
-        display: none;
+    .question-btn {
+        padding: 1rem 0.5rem;
+        min-height: 80px;
+        font-size: 0.8rem;
     }
     
+    /* 语音按钮保持文字显示 */
     .btn-voice, .btn-export {
-        width: 44px;
-        height: 44px;
-        padding: 0;
-        justify-content: center;
+        min-width: 100px;
+        padding: 0.8rem 1rem;
+        border-radius: 25px;
+    }
+    
+    .chat-messages {
+        /* 超小屏：优化聊天区域 */
+        padding: 0.8rem;
+        max-height: 50vh;
+    }
+    
+    .message {
+        margin-bottom: 1rem;
+    }
+    
+    .message-text {
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+    }
+    
+    .chat-input-container {
+        padding: 0.8rem;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    /* 虚拟键盘适配 */
+    .chat-input-wrapper {
+        margin-bottom: env(keyboard-inset-height, 0);
+    }
+}
+
+/* 横屏手机适配 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .brand-header {
+        padding: 1rem;
+    }
+    
+    .chat-messages {
+        max-height: 40vh;
+    }
+    
+    .suggested-questions {
+        padding: 1rem;
+    }
+    
+    .questions-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 

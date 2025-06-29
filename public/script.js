@@ -1,5 +1,5 @@
 // 全局变量
-let isVoiceEnabled = false;
+let isVoiceEnabled = true; // 默认开启语音功能
 let currentAudio = null;
 let messageCount = 0;
 
@@ -59,9 +59,21 @@ function sendMessage() {
         if (data.success) {
             displayMessage(data.reply || data.response, 'teacher');
             
-            // 如果启用了语音且有音频数据
-            if (isVoiceEnabled && data.audioUrl) {
-                playAudio(data.audioUrl);
+            // 语音处理逻辑改进
+            if (data.audioUrl) {
+                console.log('🎵 收到语音回复:', data.audioUrl);
+                console.log('🔊 语音开关状态:', isVoiceEnabled ? '已开启' : '已关闭');
+                
+                if (isVoiceEnabled) {
+                    console.log('▶️ 尝试播放语音...');
+                    playAudio(data.audioUrl);
+                } else {
+                    console.log('💡 提示：语音功能已关闭，点击右上角"语音开启"按钮可听到语音回复');
+                    // 显示语音提示
+                    showVoiceTip();
+                }
+            } else {
+                console.log('❌ 本次回复无语音内容');
             }
         } else {
             displayMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'teacher');
@@ -110,7 +122,20 @@ function displayMessage(message, sender) {
     
     const textDiv = document.createElement('div');
     textDiv.className = 'message-text';
-    textDiv.textContent = message;
+    
+    // 处理换行符，将 \\n 和 \n 都转换为 <br> 标签
+    // 同时转义HTML字符防止XSS攻击
+    const escapedMessage = message
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\\n\\n/g, '<br><br>')  // 处理双换行符 \\n\\n
+        .replace(/\\n/g, '<br>')         // 处理单换行符 \\n
+        .replace(/\n/g, '<br>');         // 处理实际换行符 \n
+    
+    textDiv.innerHTML = escapedMessage;
     
     const timeDiv = document.createElement('div');
     timeDiv.className = 'message-time';
@@ -162,17 +187,229 @@ function updateVoiceButton() {
 }
 
 function playAudio(audioUrl) {
-    if (!isVoiceEnabled) return;
+    if (!isVoiceEnabled) {
+        console.log('语音未开启，跳过播放');
+        return;
+    }
+    
+    console.log('尝试播放语音:', audioUrl);
     
     // 停止当前音频
     if (currentAudio) {
         currentAudio.pause();
+        currentAudio = null;
     }
     
-    currentAudio = new Audio(audioUrl);
-    currentAudio.play().catch(error => {
-        console.error('音频播放失败:', error);
+    try {
+        currentAudio = new Audio(audioUrl);
+        
+        // 添加音频事件监听
+        currentAudio.addEventListener('loadstart', () => {
+            console.log('开始加载音频');
+        });
+        
+        currentAudio.addEventListener('canplay', () => {
+            console.log('音频可以播放');
+        });
+        
+        currentAudio.addEventListener('play', () => {
+            console.log('音频开始播放');
+        });
+        
+        currentAudio.addEventListener('ended', () => {
+            console.log('音频播放完成');
+            currentAudio = null;
+            // 移除播放指示器
+            const indicator = document.querySelector('.playing-indicator');
+            if (indicator && indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        });
+        
+        currentAudio.addEventListener('error', (e) => {
+            console.error('音频加载/播放错误:', e);
+            showAudioError();
+        });
+        
+        // 尝试播放
+        const playPromise = currentAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 音频播放成功');
+                showPlayingIndicator();
+            }).catch(error => {
+                console.error('❌ 音频播放失败:', error);
+                if (error.name === 'NotAllowedError') {
+                    showAudioPermissionTip();
+                } else {
+                    showAudioError();
+                }
+            });
+        }
+    } catch (error) {
+        console.error('创建音频对象失败:', error);
+        showAudioError();
+    }
+}
+
+// 显示音频权限提示
+function showAudioPermissionTip() {
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #f59e0b;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    tip.textContent = '🔊 请点击页面任意位置以启用音频播放';
+    document.body.appendChild(tip);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+    }, 3000);
+    
+    // 点击页面任意位置后再次尝试播放
+    const handleClick = () => {
+        if (currentAudio) {
+            currentAudio.play().then(() => {
+                console.log('✅ 用户交互后音频播放成功');
+                if (tip.parentNode) {
+                    tip.parentNode.removeChild(tip);
+                }
+            }).catch(console.error);
+        }
+        document.removeEventListener('click', handleClick, { once: true });
+    };
+    document.addEventListener('click', handleClick, { once: true });
+}
+
+// 显示音频错误提示
+function showAudioError() {
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ef4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    tip.textContent = '❌ 语音播放失败，请检查网络连接';
+    document.body.appendChild(tip);
+    
+    setTimeout(() => {
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+    }, 3000);
+}
+
+// 显示语音提示（当有语音但未开启时）
+function showVoiceTip() {
+    // 避免重复显示
+    if (document.querySelector('.voice-tip')) return;
+    
+    const tip = document.createElement('div');
+    tip.className = 'voice-tip';
+    tip.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #3b82f6;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        cursor: pointer;
+        max-width: 250px;
+        line-height: 1.4;
+    `;
+    tip.innerHTML = '🎵 有语音回复！<br/>点击此处开启语音播放';
+    
+    // 点击开启语音
+    tip.addEventListener('click', () => {
+        if (!isVoiceEnabled) {
+            toggleVoice();
+        }
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
     });
+    
+    document.body.appendChild(tip);
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+    }, 5000);
+}
+
+// 显示正在播放指示器
+function showPlayingIndicator() {
+    // 避免重复显示
+    if (document.querySelector('.playing-indicator')) return;
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'playing-indicator';
+    indicator.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 25px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: pulse 1.5s ease-in-out infinite;
+    `;
+    indicator.innerHTML = '🔊 正在播放语音回复...';
+    
+    // 添加动画样式
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+    `;
+    if (!document.querySelector('style[data-audio-styles]')) {
+        style.setAttribute('data-audio-styles', 'true');
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(indicator);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        if (indicator.parentNode) {
+            indicator.parentNode.removeChild(indicator);
+        }
+    }, 3000);
 }
 
 // 保存和加载语音状态

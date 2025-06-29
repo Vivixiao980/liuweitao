@@ -1,10 +1,10 @@
-// 礼明老师知识库配置文件
+// 刘蔚涛老师知识库配置文件
 // 您可以在这里添加更多的老师知识内容
 
 const teacherKnowledgeBase = {
   // 基本信息
   teacherInfo: {
-    name: "礼明",
+    name: "刘蔚涛",
     signature: "打过胜仗、愿意分享",
     description: "一位经验丰富的导师，善于分享实战经验和人生智慧"
   },

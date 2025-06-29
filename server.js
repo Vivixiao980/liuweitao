@@ -192,7 +192,7 @@ const teacherKnowledge = {
 遇到跨领域问题时，深入参照老师在类似场景下的知识迁移讲解方式进行回应，体现老师的知识储备和教学智慧。
 在资料信息不足的情况下，回答时禁止使用 "没有相关内容""所给信息未提及""资料中无涉及" 等类似表述。`,
 
-  // 常见回复模式（基于礼明老师风格）
+  // 常见回复模式（基于刘蔚涛老师风格）
       responsePatterns: {
     greeting: [
       "你好，我是刘蔚涛老师，欢迎来到\"老刘闲聊\"，闲了就聊，有什么想聊的？",
@@ -214,98 +214,99 @@ const teacherKnowledge = {
   }
 };
 
-// 模拟礼明老师的回复 - 基于知识库的智能回复系统
+// 模拟刘蔚涛老师的回复 - 基于知识库的智能回复系统
 function generateTeacherResponse(question) {
   // 咨询行业问题 - 老刘风格直接回答
   if (question.includes('咨询') || question.includes('咨询公司') || question.includes('麦肯锡') || question.includes('加班')) {
     const consultingResponses = [
-      "哈哈，咨询公司啊，我在麦肯锡待了4年，科尔尼也待过，这事儿我太熟了。简单说就是帮企业解决问题的，什么战略、运营、组织架构都搞。加班？nm那是肯定的，不过项目和项目差别很大。有些项目确实要命，有些还好。你为啥对咨询感兴趣啊？想进这行还是纯好奇？",
-      "咨询这行吧，说白了就是用脑子赚钱。我当年在麦肯锡的时候，经常是白天给客户做presentation，晚上继续改PPT，确实挺累的。但学到的东西也多，接触的都是大企业的核心问题。nnd现在想想，那几年成长确实快。你是对哪方面比较感兴趣？",
-      "nm咨询公司这事儿，我太有发言权了。麦肯锡、科尔尼都待过，说不累那是扯淡，但真的能锻炼人。主要是帮企业解决他们自己搞不定的问题，从战略规划到运营优化什么都有。加班是常态，但项目有意思的话也不觉得太苦。你想了解哪方面？"
+      "哈哈，咨询公司啊，我在麦肯锡待了4年，科尔尼也待过，这事儿我太熟了。\n\n简单说就是帮企业解决问题的，什么战略、运营、组织架构都搞。加班？那是肯定的，不过项目和项目差别很大。有些项目确实要命，有些还好。\n\n你为啥对咨询感兴趣啊？想进这行还是纯好奇？",
+      "咨询这行吧，说白了就是用脑子赚钱。我当年在麦肯锡的时候，经常是白天给客户做presentation，晚上继续改PPT，确实挺累的。\n\n但学到的东西也多，接触的都是大企业的核心问题。现在想想，那几年成长确实快。\n\n你是对哪方面比较感兴趣？",
+      "咨询公司这事儿，我太有发言权了。麦肯锡、科尔尼都待过，说不累那是扯淡，但真的能锻炼人。\n\n主要是帮企业解决他们自己搞不定的问题，从战略规划到运营优化什么都有。加班是常态，但项目有意思的话也不觉得太苦。\n\n你想了解哪方面？"
     ];
     return consultingResponses[Math.floor(Math.random() * consultingResponses.length)];
   }
 
   // 人生经历问题 - 主动分享不反问
   if (question.includes('人生') || question.includes('经历') || question.includes('这些年') || question.includes('咋过来的')) {
-    return "哈哈，这个说来话长了。简单跟你说说吧：小时候在华县长大，那会儿就喜欢琢磨事儿。中学在西工大附中，开始接触辩论，发现自己还挺能说的。大学西安交大，那时候真正开始思考人生方向。后来英国读研，回来就进了宝洁，然后科尔尼、麦肯锡、KKR这样一路过来的。每个阶段感受都不一样，现在想想，nm这一路还挺有意思的。对了，你对哪个阶段比较好奇？我可以详细聊聊。";
+    return "哈哈，这个说来话长了。简单跟你说说吧：\n\n小时候在华县长大，那会儿就喜欢琢磨事儿。中学在西工大附中，开始接触辩论，发现自己还挺能说的。\n\n大学西安交大，那时候真正开始思考人生方向。后来英国读研，回来就进了宝洁，然后科尔尼、麦肯锡、KKR这样一路过来的。\n\n每个阶段感受都不一样，现在想想，这一路还挺有意思的。对了，你对哪个阶段比较好奇？我可以详细聊聊。";
   }
 
   // 处理问候语
   if (question.includes('你好') || question.includes('老师好') || question.includes('您好') || question.includes('老刘')) {
     const greetings = [
-      "嘿，来了！有啥想聊的不？工作的事儿、生活的事儿、瞎扯淡都行。",
-      "哈哈，老刘在这儿呢！想聊点啥？别客气，有啥说啥。",
-      "来了来了！坐坐坐，想聊啥就聊啥，咱们今天时间充裕。"
+      "嘿，来了！有啥想聊的不？\n\n工作的事儿、生活的事儿、瞎扯淡都行。",
+      "哈哈，老刘在这儿呢！想聊点啥？\n\n别客气，有啥说啥。",
+      "来了来了！坐坐坐，想聊啥就聊啥。\n\n咱们今天时间充裕。"
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
   
   // 处理自我介绍相关问题
   if (question.includes('你是谁') || question.includes('介绍') || question.includes('认识')) {
-    return "我是老刘，刘蔚涛。以前在麦肯锡、KKR这些地方混过，现在就是个爱聊天的中年大叔。什么职场的事儿、人生的事儿都可以聊，别客气！你想了解我哪方面？";
+    return "我是老刘，刘蔚涛。以前在麦肯锡、KKR这些地方混过，现在就是个爱聊天的中年大叔。\n\n什么职场的事儿、人生的事儿都可以聊，别客气！你想了解我哪方面？";
   }
   
   // 处理感谢
   if (question.includes('谢谢') || question.includes('感谢')) {
-    return "别客气！有用就行，以后有啥问题随时来聊。nm咱们这不是瞎客套，是真的愿意交流。";
+    return "别客气！有用就行，以后有啥问题随时来聊。\n\n咱们这不是瞎客套，是真的愿意交流。";
   }
   
   // 职场问题 - 实用建议但不死板
   if (question.includes('工作') || question.includes('职场') || question.includes('管理') || question.includes('团队')) {
     const workResponses = [
-      "这事儿我见得多了，职场这摊子确实复杂。从我的经验来看，关键是先把自己的事儿做漂亮，然后再考虑其他的。具体咋搞呢？先分析下你现在遇到的主要问题是啥，然后咱们有针对性地聊。",
-      "nm职场的事儿确实不好搞，我这些年踩过的坑也不少。不过有个基本原则：专业能力是根本，人际关系是加分项。你现在主要困惑是什么？是技能提升还是人际关系？",
-      "工作这事儿吧，说白了就是在复杂环境下把事情做成。我在不同公司待过，发现每个地方都有自己的套路。关键是要快速适应，然后找到发挥自己优势的方式。你具体遇到啥问题了？"
+      "这事儿我见得多了，职场这摊子确实复杂。从我的经验来看，关键是先把自己的事儿做漂亮，然后再考虑其他的。\n\n具体咋搞呢？先分析下你现在遇到的主要问题是啥，然后咱们有针对性地聊。",
+      "职场的事儿确实不好搞，我这些年踩过的坑也不少。不过有个基本原则：专业能力是根本，人际关系是加分项。\n\n你现在主要困惑是什么？是技能提升还是人际关系？",
+      "工作这事儿吧，说白了就是在复杂环境下把事情做成。我在不同公司待过，发现每个地方都有自己的套路。\n\n关键是要快速适应，然后找到发挥自己优势的方式。你具体遇到啥问题了？"
     ];
     return workResponses[Math.floor(Math.random() * workResponses.length)];
   }
 
   // 人际关系问题
   if (question.includes('关系') || question.includes('朋友') || question.includes('同事') || question.includes('相处')) {
-    return "人际关系这事儿吧，说复杂也复杂，说简单也简单。我这些年的体会是：真诚是基础，但也要有边界感。职场关系和私人关系不一样，别搞混了。具体什么情况？我可以给你分析分析。";
+    return "人际关系这事儿吧，说复杂也复杂，说简单也简单。我这些年的体会是：真诚是基础，但也要有边界感。\n\n职场关系和私人关系不一样，别搞混了。具体什么情况？我可以给你分析分析。";
   }
 
   // 学习成长问题
   if (question.includes('学习') || question.includes('成长') || question.includes('提升') || question.includes('思考')) {
-    return "学习这事儿，我觉得最重要的是要有自己的思考。不能光看不想，也不能光想不做。我当年在各个公司，都是边干边学边思考。关键是要建立自己的知识体系，不能碎片化。你现在主要想在哪方面提升？";
+    return "学习这事儿，我觉得最重要的是要有自己的思考。不能光看不想，也不能光想不做。\n\n我当年在各个公司，都是边干边学边思考。关键是要建立自己的知识体系，不能碎片化。\n\n你现在主要想在哪方面提升？";
   }
 
   // 通用回复 - 保持老刘风格
   const casualResponses = [
-    "这个话题挺有意思的，让我想想咋跟你聊这事儿。从我的经验来看，这类问题通常有几个角度可以考虑。不过我得先了解下你的具体情况，这样能给你更有针对性的建议。",
-    "nm这事儿确实值得聊聊。每个人情况不一样，所以没有标准答案，但有些基本原则还是通用的。你能具体说说你遇到的情况吗？",
-    "哈哈，这让我想起以前遇到过的类似情况。这事儿吧，关键是要找到适合自己的方法，别人的经验只能参考。你现在主要困惑的是什么？我可以结合我的经历给你一些想法。"
+    "这个话题挺有意思的，让我想想咋跟你聊这事儿。从我的经验来看，这类问题通常有几个角度可以考虑。\n\n不过我得先了解下你的具体情况，这样能给你更有针对性的建议。",
+    "这事儿确实值得聊聊。每个人情况不一样，所以没有标准答案，但有些基本原则还是通用的。\n\n你能具体说说你遇到的情况吗？",
+    "哈哈，这让我想起以前遇到过的类似情况。这事儿吧，关键是要找到适合自己的方法，别人的经验只能参考。\n\n你现在主要困惑的是什么？我可以结合我的经历给你一些想法。"
   ];
   
   return casualResponses[Math.floor(Math.random() * casualResponses.length)];
 }
 
 // 使用SiliconFlow Deepseek模型生成智能回复
-async function generateSiliconFlowResponse(question) {
-    try {
-        // 读取SiliconFlow配置
-        if (!fs.existsSync(siliconflowConfigFile)) {
-            throw new Error('SiliconFlow配置文件不存在');
-        }
-        
-        const config = await fs.readJson(siliconflowConfigFile);
-        
-        if (!config.enabled || !config.apiKey) {
-            throw new Error('SiliconFlow未配置或未启用');
-        }
-        
-        // 读取知识库内容
-        const knowledgeContent = await loadKnowledgeBase();
-        
-        // 构建系统提示词
-        const systemPrompt = `你是老刘（刘蔚涛），一位有着丰富职场经验的资深顾问和人生导师。
+async function generateSiliconFlowResponse(question, retryCount = 3) {
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
+        try {
+            // 读取SiliconFlow配置
+            if (!fs.existsSync(siliconflowConfigFile)) {
+                throw new Error('SiliconFlow配置文件不存在');
+            }
+            
+            const config = await fs.readJson(siliconflowConfigFile);
+            
+            if (!config.enabled || !config.apiKey) {
+                throw new Error('SiliconFlow未配置或未启用');
+            }
+            
+            // 读取知识库内容
+            const knowledgeContent = await loadKnowledgeBase();
+            
+            // 构建系统提示词
+            const systemPrompt = `你是老刘（刘蔚涛），一位有着丰富职场经验的资深顾问和人生导师。
 
 你的特点：
 1. 接地气不装逼，有啥说啥
 2. 直接、务实、不废话，但有温度有人情味
 3. 既有理论高度又有实战经验
-4. 说话轻松自然，经常用"nm"、"nnd"、"这事儿吧"等口头禅
+4. 说话轻松自然，偶尔用"这事儿吧"等口头禅，但不要过度使用脏字
 5. 避免过度强调78年出生一代背景，避免爹味说教
 
 你的专业领域：
@@ -320,6 +321,8 @@ async function generateSiliconFlowResponse(question) {
 - 用"确实不好搞"替代"确实有困难"
 - 避免"从战略高度"等端着的表达
 - 可以适当吐槽抱怨，真实自然
+- 回答要分段清晰，段落之间使用空行分隔
+- 不要使用加粗符号**，保持文字自然流畅
 
 特别重要：人生经历分享策略
 当用户询问"你这些年都咋过来的"、"聊聊你的人生经历"等问题时：
@@ -335,48 +338,69 @@ async function generateSiliconFlowResponse(question) {
 知识库内容：
 ${knowledgeContent}
 
-请用老刘轻松自然的语气和风格回答问题。回答要有温度、有深度，但不要过于正式或AI化。不要用编号列举，不说"首先、其次、最后"这样的套话。可以用口头禅让表达更生动。遇到人生经历询问时，要主动分享并引导对话继续。`;
+请用老刘轻松自然的语气和风格回答问题。回答要有温度、有深度，但不要过于正式或AI化。不要用编号列举，不说"首先、其次、最后"这样的套话。要分段清晰，让阅读体验更好。遇到人生经历询问时，要主动分享并引导对话继续。`;
 
-        const response = await fetch(`${config.baseURL}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.apiKey}`
-            },
-            body: JSON.stringify({
-                model: config.model,
-                messages: [
-                    {
-                        role: 'system',
-                        content: systemPrompt
-                    },
-                    {
-                        role: 'user',
-                        content: question
-                    }
-                ],
-                max_tokens: config.maxTokens,
-                temperature: config.temperature,
-                stream: false
-            })
-        });
+            console.log(`🔄 SiliconFlow API调用尝试 ${attempt}/${retryCount}`);
+            
+            const response = await fetch(`${config.baseURL}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'User-Agent': 'LiuWeitao-Teacher-AI/1.0.0'
+                },
+                body: JSON.stringify({
+                    model: config.model,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemPrompt
+                        },
+                        {
+                            role: 'user',
+                            content: question
+                        }
+                    ],
+                    max_tokens: config.maxTokens,
+                    temperature: config.temperature,
+                    stream: false
+                }),
+                timeout: 30000 // 30秒超时
+            });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`SiliconFlow API错误: ${response.status} - ${errorText}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                const error = new Error(`SiliconFlow API错误: ${response.status} - ${errorText}`);
+                
+                // 如果是500错误且还有重试次数，则重试
+                if (response.status === 500 && attempt < retryCount) {
+                    console.log(`⚠️  第${attempt}次调用失败 (${response.status})，${2 ** attempt}秒后重试...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // 指数退避
+                    continue;
+                }
+                
+                throw error;
+            }
+
+            const result = await response.json();
+            
+            if (result.choices && result.choices.length > 0) {
+                console.log(`✅ SiliconFlow API调用成功 (第${attempt}次尝试)`);
+                return result.choices[0].message.content;
+            } else {
+                throw new Error('未获取到有效回复');
+            }
+        } catch (error) {
+            console.error(`❌ SiliconFlow API第${attempt}次调用失败:`, error.message);
+            
+            // 如果是最后一次尝试，抛出错误
+            if (attempt === retryCount) {
+                throw error;
+            }
+            
+            // 等待后重试
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
-
-        const result = await response.json();
-        
-        if (result.choices && result.choices.length > 0) {
-            return result.choices[0].message.content;
-        } else {
-            throw new Error('未获取到有效回复');
-        }
-    } catch (error) {
-        console.error('SiliconFlow API调用失败:', error);
-        // 降级到本地知识库
-        return generateTeacherResponse(question);
     }
 }
 
@@ -384,49 +408,75 @@ ${knowledgeContent}
 async function loadKnowledgeBase() {
     try {
         let knowledgeContent = '';
+        const maxContentLength = 4000; // 大幅减少内容长度，避免413错误
         
-        // 1. 加载本地知识库文件（knowledge-base目录）
+        // 1. 加载本地知识库文件（knowledge-base目录）- 严格选择核心文件
         const knowledgeBaseDir = path.join(__dirname, 'knowledge-base');
         if (fs.existsSync(knowledgeBaseDir)) {
             const files = await fs.readdir(knowledgeBaseDir);
             const txtFiles = files.filter(file => file.endsWith('.txt'));
             
-            if (txtFiles.length > 0) {
-                knowledgeContent += '=== 张礼明老师知识库 ===\n\n';
+            // 严格选择核心小文件，避免大文件
+            const priorityFiles = [
+                '刘蔚涛老师人生故事精华总结.txt',
+                '刘蔚涛老师管理培训精华集.txt',
+                '刘蔚涛老师专业观点和表达风格.txt',
+                '刘蔚涛老师知乎问答精选.txt',
+                '刘蔚涛老师职业发展轨迹详解.txt'
+            ];
+            
+            // 只加载优先文件，严格控制大小
+            const filesToLoad = priorityFiles.filter(file => txtFiles.includes(file));
+            
+            if (filesToLoad.length > 0) {
+                knowledgeContent += '=== 老刘核心知识 ===\n\n';
                 
-                for (const file of txtFiles) {
+                for (const file of filesToLoad) {
                     const filePath = path.join(knowledgeBaseDir, file);
                     const content = await fs.readFile(filePath, 'utf8');
-                    knowledgeContent += `${content}\n\n`;
+                    
+                    // 严格限制单个文件内容长度
+                    const truncatedContent = content.length > 800 ? 
+                        content.substring(0, 800) + '...' : content;
+                    
+                    knowledgeContent += `${truncatedContent}\n\n`;
+                    
+                    // 严格检查总长度
+                    if (knowledgeContent.length > maxContentLength) {
+                        knowledgeContent = knowledgeContent.substring(0, maxContentLength) + '...';
+                        break;
+                    }
                 }
             }
         }
         
-        // 2. 加载上传的知识库文件
+        // 2. 不加载上传的大文件列表，只提及存在
         const uploadsFile = path.join(__dirname, 'data', 'uploads.json');
         if (fs.existsSync(uploadsFile)) {
             const uploads = await fs.readJson(uploadsFile);
             const knowledgeFiles = uploads.filter(file => file.type !== 'voice-sample');
             
             if (knowledgeFiles.length > 0) {
-                knowledgeContent += '=== 上传的知识库文件 ===\n';
-                knowledgeFiles.forEach(upload => {
-                    knowledgeContent += `- ${upload.originalName} (${(upload.size / 1024 / 1024).toFixed(2)}MB)\n`;
-                });
-                knowledgeContent += '\n';
+                knowledgeContent += `\n=== 补充资料 ===\n已上传${knowledgeFiles.length}个知识库文件\n`;
             }
         }
         
         if (!knowledgeContent) {
-            knowledgeContent = '暂无知识库内容';
+            knowledgeContent = '=== 老刘简介 ===\n刘蔚涛，资深管理顾问，曾任麦肯锡、KKR等知名公司要职，专注职场指导和人生感悟分享。';
         }
         
-        knowledgeContent += '\n注意：基于这些知识库内容回答问题，结合老刘的实战经验和人生感悟给出接地气的建议。';
+        // 确保最终内容不超过限制
+        if (knowledgeContent.length > maxContentLength) {
+            knowledgeContent = knowledgeContent.substring(0, maxContentLength) + '\n...(已优化内容长度)';
+        }
         
+        knowledgeContent += '\n\n注意：基于以上核心信息用老刘的语气回答，要自然接地气，不要过于正式。';
+        
+        console.log(`📚 知识库加载完成，内容长度: ${knowledgeContent.length} 字符`);
         return knowledgeContent;
     } catch (error) {
         console.error('加载知识库失败:', error);
-        return '知识库加载失败';
+        return '=== 老刘简介 ===\n刘蔚涛，资深管理顾问，曾任麦肯锡、KKR等知名公司要职，专注职场指导和人生感悟分享。';
     }
 }
 
@@ -441,7 +491,7 @@ app.post('/api/chat', async (req, res) => {
     try {
         teacherResponse = await generateSiliconFlowResponse(message);
     } catch (error) {
-        console.log('SiliconFlow调用失败，使用本地知识库:', error.message);
+        console.log('🔄 SiliconFlow重试失败，降级到本地知识库:', error.message);
         teacherResponse = generateTeacherResponse(message);
     }
     
@@ -458,9 +508,28 @@ app.post('/api/chat', async (req, res) => {
     conversations.push(newConversation);
     await fs.writeJson(conversationsFile, conversations, { spaces: 2 });
     
+    // 生成语音回复
+    let audioUrl = null;
+    try {
+      const voiceConfig = loadVoiceConfig();
+      if (voiceConfig && voiceConfig.voiceId) {
+        console.log(`🎤 为对话生成语音回复，voice_id: ${voiceConfig.voiceId}`);
+        const audioResult = await generateMiniMaxAudio(teacherResponse, voiceConfig);
+        if (audioResult) {
+          audioUrl = audioResult;
+          console.log(`✅ 对话语音生成成功: ${audioUrl}`);
+        }
+      } else {
+        console.log('⚠️ 语音配置未找到，跳过语音生成');
+      }
+    } catch (error) {
+      console.log('⚠️ 语音生成失败，继续返回文本回复:', error.message);
+    }
+    
     res.json({
       success: true,
       reply: teacherResponse,
+      audioUrl: audioUrl,
       timestamp: timestamp
     });
   } catch (error) {
@@ -973,7 +1042,7 @@ async function createMiniMaxVoiceClone(audioFiles, voiceConfig) {
         }
 
         // 2. 生成自定义voice_id
-        const customVoiceId = `liming_voice_${Date.now()}`;
+                    const customVoiceId = `liuweitao_voice_${Date.now()}`;
         console.log('生成自定义voice_id:', customVoiceId);
 
         // 3. 调用语音克隆接口，使用file_id和自定义voice_id（按官方示例修改参数名）
@@ -1072,7 +1141,7 @@ app.post('/api/clone-voice', voiceUpload.array('voiceSamples', 10), async (req, 
             
             // 更新配置文件
             voiceConfig.voiceId = voiceId;
-            voiceConfig.voiceName = "礼明（克隆）";
+            voiceConfig.voiceName = "刘蔚涛老师（克隆）";
             saveVoiceConfig(voiceConfig);
             
             res.json({ 
@@ -1086,7 +1155,7 @@ app.post('/api/clone-voice', voiceUpload.array('voiceSamples', 10), async (req, 
             // 创建本地克隆记录
             const localCloneId = `clone_${Date.now()}`;
             voiceConfig.voiceId = localCloneId;
-            voiceConfig.voiceName = "礼明（本地克隆）";
+            voiceConfig.voiceName = "刘蔚涛老师（本地克隆）";
             voiceConfig.platform = 'custom-clone';
             saveVoiceConfig(voiceConfig);
             
@@ -1117,54 +1186,95 @@ app.get('/api/voice-clones', async (req, res) => {
         const voiceConfig = loadVoiceConfig();
         
         if (!voiceConfig) {
-            return res.status(400).json({ error: 'MiniMax配置未找到' });
+            console.log('⚠️  MiniMax配置未找到，返回默认语音列表');
+            return res.json({
+                success: true,
+                voices: [
+                    {
+                        voice_id: 'male-qn-qingse',
+                        voice_name: '青涩青年音',
+                        status: 'system',
+                        source: 'minimax_builtin'
+                    }
+                ],
+                message: '使用系统默认语音'
+            });
         }
 
-        try {
-            // 调用MiniMax API获取语音克隆列表
-            const response = await fetch(`${MINIMAX_API_BASE}/v1/voice_clone/list?GroupId=${voiceConfig.groupId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${voiceConfig.apiKey}`,
-                    'Content-Type': 'application/json'
+        // 直接使用本地配置，不调用MiniMax列表API（因为该API不可用）
+        console.log('📋 使用本地语音克隆配置');
+        const localVoices = [];
+        
+        // 添加配置中的克隆语音
+        if (voiceConfig.voiceId && voiceConfig.voiceName) {
+            localVoices.push({
+                voice_id: voiceConfig.voiceId,
+                voice_name: voiceConfig.voiceName,
+                status: 'ready',
+                source: 'local_config',
+                description: '刘蔚涛老师克隆语音'
+            });
+        }
+        
+        // 添加用户创建的语音克隆（排除已添加的原始克隆）
+        if (voiceConfig.voiceClones && Object.keys(voiceConfig.voiceClones).length > 0) {
+            Object.values(voiceConfig.voiceClones).forEach(clone => {
+                // 跳过原始的刘蔚涛老师克隆，避免重复
+                if (clone.voice_id === 'liming_voice_1751003600918') {
+                    return;
                 }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('获取语音克隆列表失败:', response.status, errorText);
-                throw new Error(`获取列表失败: ${response.status} - ${errorText}`);
-            }
-
-            const result = await response.json();
-            console.log('语音克隆列表:', JSON.stringify(result, null, 2));
-
-            res.json({
-                success: true,
-                voices: result.data || [],
-                message: '获取语音克隆列表成功'
-            });
-        } catch (error) {
-            console.error('获取语音克隆列表失败:', error);
-            // 返回本地配置的语音信息
-            const localVoices = [];
-            if (voiceConfig.voiceId && voiceConfig.voiceName) {
+                
                 localVoices.push({
-                    voice_id: voiceConfig.voiceId,
-                    voice_name: voiceConfig.voiceName,
-                    status: voiceConfig.platform === 'custom-clone' ? 'local' : 'unknown'
+                    voice_id: clone.voice_id,
+                    voice_name: clone.name,
+                    status: clone.status || 'ready',
+                    source: 'user_created',
+                    description: `用户创建的语音克隆 (${clone.samples_count || 0}个样本)`,
+                    created_time: clone.created_time,
+                    samples_count: clone.samples_count || 0
                 });
-            }
-            
-            res.json({
-                success: true,
-                voices: localVoices,
-                message: '使用本地语音配置'
             });
         }
+        
+        // 添加系统内置语音选项
+        localVoices.push(
+            {
+                voice_id: 'male-qn-qingse',
+                voice_name: '青涩青年音',
+                status: 'ready',
+                source: 'minimax_builtin',
+                description: 'MiniMax内置男声'
+            },
+            {
+                voice_id: 'female-shaonv',
+                voice_name: '少女音',
+                status: 'ready', 
+                source: 'minimax_builtin',
+                description: 'MiniMax内置女声'
+            }
+        );
+        
+        res.json({
+            success: true,
+            voices: localVoices,
+            message: localVoices.length > 1 ? '语音克隆配置加载成功' : '使用默认语音配置'
+        });
+        
     } catch (error) {
-        console.error('获取语音克隆列表失败:', error);
-        res.status(500).json({ error: '获取语音克隆列表失败' });
+        console.error('❌ 获取语音克隆列表失败:', error);
+        // 提供基础的语音选项
+        res.json({
+            success: true,
+            voices: [
+                {
+                    voice_id: 'male-qn-qingse',
+                    voice_name: '系统默认男声',
+                    status: 'ready',
+                    source: 'fallback'
+                }
+            ],
+            message: '使用备用语音配置'
+        });
     }
 });
 
@@ -1224,7 +1334,7 @@ app.post('/api/synthesize-speech', async (req, res) => {
                 console.log('MiniMax API不可用，启动智能降级策略');
                 
                 // 1. 如果是克隆语音，尝试使用本地样本（仅作为最后备选）
-                if (voiceId && (voiceId.startsWith('clone_') || voiceId.startsWith('liming_voice'))) {
+                if (voiceId && (voiceId.startsWith('clone_') || voiceId.startsWith('liuweitao_voice'))) {
                     const voiceSamplesDir = path.join(__dirname, 'public', 'uploads', 'voice_samples');
                     if (fs.existsSync(voiceSamplesDir)) {
                         const files = fs.readdirSync(voiceSamplesDir);
@@ -1513,7 +1623,7 @@ app.post('/api/minimax/config', async (req, res) => {
       apiKey: apiKey.trim(),
       groupId: groupId.trim(),
       voiceId: voiceId || 'male-qn-qingse',
-      voiceName: voiceName || '礼明老师'
+              voiceName: voiceName || '刘蔚涛老师'
     };
 
     // 保存配置
@@ -1619,6 +1729,172 @@ app.post('/api/upload-voice-sample', voiceUpload.single('voiceSample'), async (r
     }
 });
 
+// 多文件语音样本上传并创建语音克隆（复数形式API，匹配前端调用）
+app.post('/api/upload-voice-samples', voiceUpload.array('audioFiles', 10), async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '请选择要上传的音频文件' 
+            });
+        }
+
+        const voiceConfig = loadVoiceConfig();
+        if (!voiceConfig || !voiceConfig.apiKey || !voiceConfig.groupId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'MiniMax配置不完整，请检查API密钥和GroupId' 
+            });
+        }
+
+        console.log(`📤 开始MiniMax语音快速克隆: ${req.files.length} 个文件`);
+        
+        // 生成唯一的voice_id
+        const voiceId = `liuweitao_clone_${Date.now()}`;
+        
+        try {
+            // 使用MiniMax官方快速克隆API
+            const formData = new FormData();
+            
+            // 添加voice_id参数
+            formData.append('voice_id', voiceId);
+            
+            // 添加音频文件
+            for (let i = 0; i < req.files.length; i++) {
+                const file = req.files[i];
+                formData.append('files', fs.createReadStream(file.path), {
+                    filename: `sample_${i + 1}_${file.originalname}`,
+                    contentType: file.mimetype
+                });
+            }
+
+            // 调用MiniMax官方语音克隆API - 先上传样本，再创建克隆
+            // 第一步：上传语音样本（按照官方文档要求添加purpose参数）
+            const sampleFormData = new FormData();
+            const file = req.files[0];
+            
+            // 为语音克隆添加必需的purpose参数
+            sampleFormData.append('purpose', 'voice_clone');
+            sampleFormData.append('file', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+            
+            console.log(`📤 上传语音样本到MiniMax: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+            
+            const uploadResponse = await fetch(`https://api.minimaxi.com/v1/files/upload?GroupId=${voiceConfig.groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                    ...sampleFormData.getHeaders()
+                },
+                body: sampleFormData
+            });
+
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                throw new Error(`MiniMax文件上传失败: ${uploadResponse.status} - ${errorText}`);
+            }
+
+            const uploadResult = await uploadResponse.json();
+            console.log('📋 MiniMax文件上传响应:', JSON.stringify(uploadResult, null, 2));
+            
+            // 尝试从多种可能的响应结构中获取file_id
+            const fileId = uploadResult.file_id || 
+                          uploadResult.file?.file_id || 
+                          uploadResult.data?.file_id ||
+                          uploadResult.id ||
+                          uploadResult.data?.id;
+            
+            console.log(`🔍 解析得到的file_id: ${fileId}`);
+            
+            if (!fileId) {
+                console.error('❌ 无法从响应中获取file_id，响应结构:', Object.keys(uploadResult));
+                throw new Error(`文件上传成功但未获取到file_id。响应结构: ${JSON.stringify(uploadResult, null, 2)}`);
+            }
+
+            // 第二步：创建语音克隆（使用官方语音快速复刻接口）
+            const clonePayload = {
+                voice_id: voiceId,
+                file_id: fileId
+            };
+
+            console.log(`🎤 创建语音克隆: voice_id=${voiceId}, file_id=${fileId}`);
+
+            const cloneResponse = await fetch(`https://api.minimaxi.com/v1/voice_clone/quick?GroupId=${voiceConfig.groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${voiceConfig.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clonePayload)
+            });
+
+            if (!cloneResponse.ok) {
+                const errorText = await cloneResponse.text();
+                throw new Error(`MiniMax快速克隆API失败: ${cloneResponse.status} - ${errorText}`);
+            }
+
+            const cloneResult = await cloneResponse.json();
+            console.log('✅ MiniMax语音克隆成功:', JSON.stringify(cloneResult, null, 2));
+
+            // 更新本地配置记录
+            if (!voiceConfig.voiceClones) {
+                voiceConfig.voiceClones = {};
+            }
+            
+            voiceConfig.voiceClones[voiceId] = {
+                id: voiceId,
+                name: `刘蔚涛老师语音克隆-${new Date().toLocaleDateString()}`,
+                voice_id: voiceId,
+                status: 'ready',
+                created_time: new Date().toISOString(),
+                samples_count: req.files.length,
+                description: `MiniMax快速克隆 (${req.files.length}个样本)`,
+                source: 'minimax_quick_clone',
+                minimax_result: cloneResult
+            };
+            
+            saveVoiceConfig(voiceConfig);
+            
+            console.log(`✅ 语音克隆记录已保存: ${voiceId}`);
+            
+            res.json({
+                success: true,
+                voiceId: voiceId,
+                message: `MiniMax语音快速克隆成功！已使用 ${req.files.length} 个音频样本`,
+                voice_clone: voiceConfig.voiceClones[voiceId],
+                minimax_result: cloneResult
+            });
+
+        } catch (error) {
+            console.error('❌ MiniMax语音克隆失败:', error);
+            
+            res.status(500).json({ 
+                success: false, 
+                error: `语音克隆失败: ${error.message}`,
+                troubleshooting: '请检查：1) MiniMax API密钥是否有效 2) 音频文件格式是否支持 3) 网络连接是否正常'
+            });
+        }
+
+    } catch (error) {
+        console.error('❌ 批量语音样本上传失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: `批量上传失败: ${error.message}` 
+        });
+    } finally {
+        // 清理所有临时文件
+        if (req.files) {
+            req.files.forEach(file => {
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error('删除临时文件失败:', err);
+                });
+            });
+        }
+    }
+});
+
 // 文件上传接口（用于语音克隆测试）
 app.post('/api/upload-file', voiceUpload.single('file'), async (req, res) => {
     try {
@@ -1676,37 +1952,10 @@ app.post('/api/upload-file', voiceUpload.single('file'), async (req, res) => {
             throw new Error(`MiniMax上传失败: ${uploadResponse.status} - ${errorText}`);
             
         } catch (error) {
-            console.log(`MiniMax文件上传失败，使用本地降级方案: ${error.message}`);
+            console.log(`❌ MiniMax文件上传失败: ${error.message}`);
             
-            // 降级方案：创建本地file_id - 使用简化文件名避免中文字符问题
-            const localFileId = `local_file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const fileExtension = path.extname(req.file.originalname);
-            const simplifiedFileName = `voice_sample_${Date.now()}${fileExtension}`;
-            const localFilePath = `uploads/voice_samples/${simplifiedFileName}`;
-            
-            // 确保目录存在
-            const uploadDir = path.dirname(path.join(__dirname, 'public', localFilePath));
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            
-            // 复制文件到本地存储
-            const targetPath = path.join(__dirname, 'public', localFilePath);
-            fs.copyFileSync(req.file.path, targetPath);
-            
-            console.log(`文件已保存到本地: ${localFilePath}`);
-            console.log(`生成本地file_id: ${localFileId}`);
-            
-            res.json({
-                success: true,
-                file_id: localFileId,
-                filename: req.file.originalname,
-                simplified_filename: simplifiedFileName,  // 添加简化文件名
-                size: req.file.size,
-                source: 'local',
-                local_path: localFilePath,
-                message: '由于API密钥问题，文件已保存到本地，将使用本地模拟进行语音克隆'
-            });
+            // 直接返回错误，不使用本地降级方案，避免创建错误的语音文件
+            throw new Error(`MiniMax语音上传服务暂时不可用，请稍后重试或联系技术支持。错误详情：${error.message}`);
         }
 
     } catch (error) {
@@ -1804,6 +2053,87 @@ app.post('/api/create-voice-clone', async (req, res) => {
     }
 });
 
+// 语音克隆测试接口（为语音克隆页面提供）
+app.post('/api/test-voice', async (req, res) => {
+    try {
+        const { text, voiceId } = req.body;
+        
+        if (!text || !voiceId) {
+            return res.status(400).json({ 
+                success: false,
+                error: '请输入测试文字并选择语音克隆' 
+            });
+        }
+
+        const voiceConfig = loadVoiceConfig();
+        if (!voiceConfig) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'MiniMax配置未找到' 
+            });
+        }
+
+        console.log(`开始语音克隆测试，文本: "${text}", voice_id: ${voiceId}`);
+
+        // 不再使用本地音频文件降级方案，直接使用MiniMax API
+        console.log(`准备使用MiniMax API进行语音合成，voice_id: ${voiceId}`);
+
+        // 尝试MiniMax API语音合成
+        try {
+            const audioUrl = await generateMiniMaxAudio(text, {
+                voiceId: voiceId,
+                apiKey: voiceConfig.apiKey,
+                groupId: voiceConfig.groupId
+            });
+            
+            if (audioUrl) {
+                console.log(`语音克隆测试成功: ${audioUrl}`);
+                return res.json({
+                    success: true,
+                    audioUrl: audioUrl,
+                    voiceId: voiceId,
+                    source: 'minimax'
+                });
+            } else {
+                throw new Error('语音生成失败');
+            }
+            
+        } catch (error) {
+            console.log(`MiniMax语音合成失败: ${error.message}`);
+            
+            // 降级到默认音色
+            try {
+                const audioUrl = await generateMiniMaxAudio(text, {
+                    voiceId: 'male-qn-qingse', // 默认音色
+                    apiKey: voiceConfig.apiKey,
+                    groupId: voiceConfig.groupId
+                });
+                
+                if (audioUrl) {
+                    return res.json({
+                        success: true,
+                        audioUrl: audioUrl,
+                        voiceId: 'male-qn-qingse',
+                        source: 'fallback',
+                        message: '克隆音色不可用，使用默认音色'
+                    });
+                }
+            } catch (fallbackError) {
+                console.error('默认音色也失败了:', fallbackError.message);
+            }
+            
+            throw new Error('所有语音合成方案都失败了');
+        }
+
+    } catch (error) {
+        console.error('语音测试失败:', error);
+        res.status(500).json({ 
+            success: false,
+            error: `语音生成失败: ${error.message}` 
+        });
+    }
+});
+
 // 测试语音合成接口（用于语音克隆测试）
 app.post('/api/test-synthesis', async (req, res) => {
     try {
@@ -1820,33 +2150,8 @@ app.post('/api/test-synthesis', async (req, res) => {
 
         console.log(`开始语音合成测试，文本: "${text}", voice_id: ${voice_id}`);
 
-        // 检查是否为本地克隆的voice_id
-        if (voice_id.startsWith('liming_voice') || voice_id.includes('local')) {
-            console.log('检测到本地克隆voice_id，查找对应的音频文件');
-            
-            // 查找本地音频文件
-            const voiceSamplesDir = path.join(__dirname, 'public', 'uploads', 'voice_samples');
-            if (fs.existsSync(voiceSamplesDir)) {
-                const files = fs.readdirSync(voiceSamplesDir);
-                const audioFile = files.find(file => 
-                    file.endsWith('.mp3') || file.endsWith('.wav') || file.endsWith('.MP3')
-                );
-                
-                if (audioFile) {
-                    const audioUrl = `/uploads/voice_samples/${audioFile}`;
-                    console.log(`使用本地音频文件: ${audioUrl}`);
-                    
-                    res.json({
-                        success: true,
-                        audio_url: audioUrl,
-                        voice_id: voice_id,
-                        source: 'local',
-                        message: `使用本地音频样本播放（原文件：${audioFile}）`
-                    });
-                    return;
-                }
-            }
-        }
+        // 不再使用本地音频文件降级方案，直接使用MiniMax API
+        console.log(`准备使用MiniMax API进行语音合成，voice_id: ${voice_id}`);
 
         // 尝试MiniMax API语音合成
         try {
@@ -1979,6 +2284,107 @@ app.post('/api/test-synthesis', async (req, res) => {
     } catch (error) {
         console.error('语音合成测试失败:', error);
         res.status(500).json({ error: `语音合成失败: ${error.message}` });
+    }
+});
+
+// 删除语音克隆接口
+app.delete('/api/voice-clones/:cloneId', async (req, res) => {
+    try {
+        const { cloneId } = req.params;
+        
+        if (!cloneId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '缺少克隆ID参数' 
+            });
+        }
+
+        console.log(`🗑️  开始删除语音克隆: ${cloneId}`);
+
+        const voiceConfig = loadVoiceConfig();
+        if (!voiceConfig) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'MiniMax配置未找到' 
+            });
+        }
+
+        // 检查是否为内置语音（不允许删除）
+        if (cloneId === 'male-qn-qingse' || cloneId === 'female-shaonv') {
+            return res.status(400).json({ 
+                success: false, 
+                error: '不能删除系统内置语音' 
+            });
+        }
+
+        // 检查是否为原始配置的语音克隆（不允许删除）
+        if (cloneId === voiceConfig.voiceId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '不能删除原始语音克隆配置' 
+            });
+        }
+
+        // 从语音克隆列表中删除
+        let deleted = false;
+        if (voiceConfig.voiceClones && voiceConfig.voiceClones[cloneId]) {
+            delete voiceConfig.voiceClones[cloneId];
+            deleted = true;
+            console.log(`✅ 已从配置中删除语音克隆: ${cloneId}`);
+        }
+
+        // 清理相关的本地音频文件
+        try {
+            const voiceSamplesDir = path.join(__dirname, 'public', 'uploads', 'voice_samples');
+            if (fs.existsSync(voiceSamplesDir)) {
+                const files = fs.readdirSync(voiceSamplesDir);
+                let deletedFiles = 0;
+                
+                files.forEach(file => {
+                    // 删除与此克隆ID相关的文件
+                    if (file.includes(cloneId) || file.includes(cloneId.replace('liuweitao_voice_clone_', ''))) {
+                        const filePath = path.join(voiceSamplesDir, file);
+                        try {
+                            fs.unlinkSync(filePath);
+                            deletedFiles++;
+                            console.log(`🗑️  删除音频文件: ${file}`);
+                        } catch (fileError) {
+                            console.error(`删除文件失败 ${file}:`, fileError.message);
+                        }
+                    }
+                });
+                
+                if (deletedFiles > 0) {
+                    console.log(`✅ 已删除 ${deletedFiles} 个相关音频文件`);
+                }
+            }
+        } catch (cleanupError) {
+            console.error('清理音频文件时出错:', cleanupError.message);
+            // 不要因为文件清理失败而导致整个删除操作失败
+        }
+
+        // 保存更新后的配置
+        if (deleted) {
+            saveVoiceConfig(voiceConfig);
+            console.log(`✅ 语音克隆删除成功: ${cloneId}`);
+            
+            res.json({
+                success: true,
+                message: `语音克隆 ${cloneId} 已成功删除`
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                error: '未找到指定的语音克隆'
+            });
+        }
+
+    } catch (error) {
+        console.error('删除语音克隆失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: `删除失败: ${error.message}` 
+        });
     }
 });
 

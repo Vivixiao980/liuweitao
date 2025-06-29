@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音克隆管理 - 刘蔚涛老师智能体</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            color: #003366;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            border-color: #6366f1;
+            background: #f8fafc;
+        }
+
+        .upload-zone.dragover {
+            border-color: #6366f1;
+            background: #f0f8ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .file-icon {
+            color: #6366f1;
+            font-size: 1.2rem;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .file-size {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .remove-btn {
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+        }
+
+        .remove-btn:hover {
+            background: #fee2e2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        .clone-list {
+            margin-top: 1rem;
+        }
+
+        .clone-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .clone-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .clone-name {
+            font-weight: 600;
+            color: #003366;
+            font-size: 1.1rem;
+        }
+
+        .clone-status {
+            padding: 0.2rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .clone-status.ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .clone-status.processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .clone-details {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .clone-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .nav-link {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .nav-link:hover {
+            background: #f0f8ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 语音克隆管理</h1>
+            <p>上传音频样本，创建专属的刘蔚涛老师语音克隆</p>
+        </div>
+
+        <div class="content">
+            <!-- 上传音频样本 -->
+            <div class="section">
+                <h2>📤 上传音频样本</h2>
+                <div class="upload-zone" onclick="document.getElementById('audioFile').click()">
+                    <div class="upload-icon">🎤</div>
+                    <div class="upload-text">点击选择或拖拽音频文件到这里</div>
+                    <div class="upload-hint">支持 MP3, WAV, M4A 格式，建议1-2分钟清晰语音</div>
+                </div>
+                <input type="file" id="audioFile" class="file-input" accept="audio/*" multiple>
+                
+                <div id="fileList" class="file-list"></div>
+                
+                <div id="uploadProgress" class="progress-bar" style="display:none;">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button id="uploadBtn" class="btn" onclick="uploadAudioFiles()" disabled>
+                        创建语音克隆
+                    </button>
+                </div>
+                
+                <div id="uploadStatus"></div>
+            </div>
+
+            <!-- 现有语音克隆 -->
+            <div class="section">
+                <h2>🔊 现有语音克隆</h2>
+                <div id="cloneList" class="clone-list">
+                    <div class="status info">
+                        正在加载语音克隆列表...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 语音测试区域 -->
+            <div class="section">
+                <h2>🎙️ 语音测试</h2>
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px;">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="testText" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">
+                            输入测试文字：
+                        </label>
+                        <textarea 
+                            id="testText" 
+                            placeholder="请输入想要测试的文字内容，比如：哈哈，这个语音克隆功能还挺有意思的！从我的经验来看，这事儿确实不好搞..."
+                            style="width: 100%; min-height: 100px; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; resize: vertical; font-family: inherit;"
+                        ></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="voiceSelect" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">
+                            选择语音克隆：
+                        </label>
+                        <select 
+                            id="voiceSelect" 
+                            style="width: 100%; padding: 0.8rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; background: white;"
+                        >
+                            <option value="">正在加载语音克隆...</option>
+                        </select>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button 
+                            id="testBtn" 
+                            class="btn" 
+                            onclick="testCustomVoice()" 
+                            disabled
+                            style="margin-right: 1rem;"
+                        >
+                            🎵 生成语音测试
+                        </button>
+                        <button 
+                            id="clearBtn" 
+                            class="btn" 
+                            onclick="clearTestArea()"
+                            style="background: #6b7280;"
+                        >
+                            🗑️ 清空内容
+                        </button>
+                    </div>
+                    
+                    <div id="testStatus" style="margin-top: 1rem;"></div>
+                    
+                    <div id="audioPlayer" style="margin-top: 1rem; text-align: center; display: none;">
+                        <audio id="testAudio" controls style="width: 100%; max-width: 400px;">
+                            您的浏览器不支持音频播放
+                        </audio>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用说明 -->
+            <div class="section">
+                <h2>📋 使用说明</h2>
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; color: #64748b;">
+                    <p><strong>1. 音频要求：</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li>推荐上传1-2分钟的清晰语音</li>
+                        <li>尽量使用安静环境录制</li>
+                        <li>语速正常，发音清晰</li>
+                        <li>可以多上传几个不同内容的音频片段</li>
+                    </ul>
+                    
+                    <p><strong>2. 克隆过程：</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li>上传音频文件后，系统会自动创建语音克隆</li>
+                        <li>克隆创建成功后，在主页对话时会自动使用</li>
+                        <li>如果MiniMax API不可用，会降级到本地音频播放</li>
+                    </ul>
+                    
+                    <p><strong>3. 推荐录制内容：</strong></p>
+                    <div style="background: white; padding: 1rem; border-radius: 6px; margin-top: 0.5rem; font-style: italic;">
+                        "你好，我是刘蔚涛老师，欢迎来到'老刘闲聊'。闲了就聊，有什么想聊的都可以跟我说。我一直相信，交流是最好的学习方式。在我的经历中，每一次对话都能带来新的思考和启发。让我们一起聊聊吧！"
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <a href="/" class="nav-link">🏠 返回主页</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        // 文件选择处理
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            updateFileList();
+            updateUploadButton();
+        });
+
+        // 拖拽上传
+        const uploadZone = document.querySelector('.upload-zone');
+        
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => 
+                file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|m4a|mp4)$/i)
+            );
+            
+            selectedFiles = [...selectedFiles, ...files];
+            updateFileList();
+            updateUploadButton();
+        });
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <span class="file-icon">🎵</span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">
+                        ❌
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateUploadButton() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        async function uploadAudioFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '正在上传...';
+            uploadProgress.style.display = 'block';
+            
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach((file, index) => {
+                    formData.append('audioFiles', file);
+                });
+                
+                const response = await fetch('/api/upload-voice-samples', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`上传失败: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                progressFill.style.width = '100%';
+                
+                if (result.success) {
+                    uploadStatus.innerHTML = `
+                        <div class="status success">
+                            ✅ 语音克隆创建成功！<br>
+                            克隆ID: ${result.cloneId}<br>
+                            现在可以在主页对话中使用语音回复了
+                        </div>
+                    `;
+                    
+                    // 清空文件列表
+                    selectedFiles = [];
+                    updateFileList();
+                    
+                    // 重新加载语音克隆列表
+                    loadVoiceClones();
+                } else {
+                    throw new Error(result.error || '创建失败');
+                }
+                
+            } catch (error) {
+                uploadStatus.innerHTML = `
+                    <div class="status error">
+                        ❌ ${error.message}
+                    </div>
+                `;
+                progressFill.style.width = '0%';
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '创建语音克隆';
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        async function loadVoiceClones() {
+            try {
+                const response = await fetch('/api/voice-clones');
+                const result = await response.json();
+                
+                // 处理API返回的数据结构
+                const clones = result.success ? (result.voices || []) : [];
+                
+                const cloneList = document.getElementById('cloneList');
+                const voiceSelect = document.getElementById('voiceSelect');
+                
+                if (clones.length === 0) {
+                    cloneList.innerHTML = `
+                        <div class="status info">
+                            暂无语音克隆，请先上传音频样本创建
+                        </div>
+                    `;
+                    voiceSelect.innerHTML = '<option value="">暂无可用语音克隆</option>';
+                    return;
+                }
+                
+                // 更新语音克隆列表显示
+                cloneList.innerHTML = clones.map(clone => `
+                    <div class="clone-item">
+                        <div class="clone-header">
+                            <span class="clone-name">${clone.voice_name || clone.name || '未命名语音'}</span>
+                            <span class="clone-status ${clone.status}">${clone.status === 'ready' ? '就绪' : '处理中'}</span>
+                        </div>
+                        <div class="clone-details">
+                            ${clone.created_time ? `创建时间: ${new Date(clone.created_time).toLocaleString()}<br>` : ''}
+                            ${clone.samples_count ? `样本数量: ${clone.samples_count} 个<br>` : ''}
+                            ${clone.description || ''}
+                        </div>
+                        <div class="clone-actions">
+                            <button class="btn btn-small" onclick="testVoiceClone('${clone.voice_id}')">
+                                测试语音
+                            </button>
+                            ${clone.source !== 'minimax_builtin' ? `<button class="btn btn-small btn-secondary" onclick="deleteVoiceClone('${clone.voice_id}')">删除</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // 更新语音选择下拉框
+                voiceSelect.innerHTML = clones
+                    .filter(clone => clone.status === 'ready')
+                    .map(clone => `
+                        <option value="${clone.voice_id}">${clone.voice_name || clone.name || '未命名语音'}</option>
+                    `).join('');
+                
+                if (voiceSelect.children.length === 0) {
+                    voiceSelect.innerHTML = '<option value="">暂无就绪的语音克隆</option>';
+                } else {
+                    // 添加默认选择提示
+                    voiceSelect.insertAdjacentHTML('afterbegin', '<option value="">请选择语音克隆</option>');
+                }
+                
+                // 更新测试按钮状态
+                updateTestButton();
+                
+            } catch (error) {
+                document.getElementById('cloneList').innerHTML = `
+                    <div class="status error">
+                        ❌ 加载语音克隆列表失败: ${error.message}
+                    </div>
+                `;
+                document.getElementById('voiceSelect').innerHTML = '<option value="">加载失败</option>';
+            }
+        }
+
+        async function testVoiceClone(voiceId) {
+            try {
+                const response = await fetch('/api/test-voice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: '你好，这是语音克隆测试。我是刘蔚涛老师，很高兴与你交流！',
+                        voiceId: voiceId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.audioUrl) {
+                    const audio = new Audio(result.audioUrl);
+                    audio.play().catch(e => {
+                        console.error('播放失败:', e);
+                        alert('语音播放失败，请检查浏览器设置');
+                    });
+                } else {
+                    alert('语音生成失败: ' + (result.error || '未知错误'));
+                }
+                
+            } catch (error) {
+                alert('测试失败: ' + error.message);
+            }
+        }
+
+        async function deleteVoiceClone(cloneId) {
+            if (!confirm('确定要删除这个语音克隆吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/voice-clones/${cloneId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadVoiceClones();
+                } else {
+                    alert('删除失败: ' + (result.error || '未知错误'));
+                }
+                
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 自定义语音测试功能
+        function updateTestButton() {
+            const testText = document.getElementById('testText').value.trim();
+            const voiceSelect = document.getElementById('voiceSelect').value;
+            const testBtn = document.getElementById('testBtn');
+            
+            testBtn.disabled = !testText || !voiceSelect;
+        }
+
+        async function testCustomVoice() {
+            const testText = document.getElementById('testText').value.trim();
+            const voiceId = document.getElementById('voiceSelect').value;
+            const testBtn = document.getElementById('testBtn');
+            const testStatus = document.getElementById('testStatus');
+            const audioPlayer = document.getElementById('audioPlayer');
+            const testAudio = document.getElementById('testAudio');
+            
+            if (!testText || !voiceId) {
+                testStatus.innerHTML = `
+                    <div class="status error">
+                        ❌ 请输入测试文字并选择语音克隆
+                    </div>
+                `;
+                return;
+            }
+            
+            // 显示进度状态
+            testBtn.disabled = true;
+            testBtn.textContent = '🎵 正在生成语音...';
+            testStatus.innerHTML = `
+                <div class="status info">
+                    🔄 正在使用语音克隆生成语音，请稍候...
+                </div>
+            `;
+            audioPlayer.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/test-voice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: testText,
+                        voiceId: voiceId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.audioUrl) {
+                    testStatus.innerHTML = `
+                        <div class="status success">
+                            ✅ 语音生成成功！点击下方播放器试听效果
+                        </div>
+                    `;
+                    
+                    testAudio.src = result.audioUrl;
+                    audioPlayer.style.display = 'block';
+                    
+                    // 自动播放（需要用户交互）
+                    setTimeout(() => {
+                        testAudio.play().catch(e => {
+                            console.log('自动播放被阻止，用户需要手动点击播放');
+                        });
+                    }, 500);
+                    
+                } else {
+                    throw new Error(result.error || '语音生成失败');
+                }
+                
+            } catch (error) {
+                testStatus.innerHTML = `
+                    <div class="status error">
+                        ❌ 语音生成失败: ${error.message}
+                    </div>
+                `;
+                audioPlayer.style.display = 'none';
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🎵 生成语音测试';
+            }
+        }
+
+        function clearTestArea() {
+            document.getElementById('testText').value = '';
+            document.getElementById('voiceSelect').selectedIndex = 0;
+            document.getElementById('testStatus').innerHTML = '';
+            document.getElementById('audioPlayer').style.display = 'none';
+            updateTestButton();
+        }
+
+        // 添加事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            const testText = document.getElementById('testText');
+            const voiceSelect = document.getElementById('voiceSelect');
+            
+            if (testText) {
+                testText.addEventListener('input', updateTestButton);
+            }
+            
+            if (voiceSelect) {
+                voiceSelect.addEventListener('change', updateTestButton);
+            }
+        });
+
+        // 页面加载时获取语音克隆列表
+        window.addEventListener('load', loadVoiceClones);
+    </script>
+</body>
+</html> 
