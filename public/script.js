@@ -386,12 +386,12 @@ function updateVoiceButton() {
     if (isVoiceEnabled) {
         voiceToggle.classList.add('voice-enabled');
         if (btnText) btnText.textContent = '语音关闭';
-        icon.className = 'fa fa-volume-off';
+        icon.className = 'fa fa-volume-up';  // 修复：语音开启时显示有声图标
         voiceToggle.title = '关闭语音播放';
     } else {
         voiceToggle.classList.remove('voice-enabled');
         if (btnText) btnText.textContent = '语音开启';
-        icon.className = 'fa fa-volume-up';
+        icon.className = 'fa fa-volume-off'; // 修复：语音关闭时显示静音图标
         voiceToggle.title = '开启语音播放';
     }
 }
