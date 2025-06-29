@@ -484,59 +484,119 @@ async function loadKnowledgeBase() {
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, userId } = req.body;
-    const timestamp = new Date().toISOString();
     
-    // 优先使用SiliconFlow Deepseek模型生成回复
-    let teacherResponse;
-    try {
-        teacherResponse = await generateSiliconFlowResponse(message);
-    } catch (error) {
-        console.log('🔄 SiliconFlow重试失败，降级到本地知识库:', error.message);
-        teacherResponse = generateTeacherResponse(message);
+    if (!message) {
+      return res.status(400).json({ success: false, error: '消息不能为空' });
     }
-    
+
+    // 生成回复
+    let reply;
+    try {
+      // 尝试使用SiliconFlow生成回复
+      reply = await generateSiliconFlowResponse(message);
+    } catch (error) {
+      console.log('🔄 SiliconFlow重试失败，降级到本地知识库:', error.message);
+      reply = generateTeacherResponse(message);
+    }
+
     // 保存对话记录
-    const conversations = await fs.readJson(conversationsFile);
-    const newConversation = {
-      id: Date.now(),
-      userId: userId || 'anonymous',
-      userMessage: message,
-      teacherResponse: teacherResponse,
-      timestamp: timestamp
+    const conversation = {
+      id: `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user_id: userId || `user_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      user_message: message,
+      ai_response: reply
     };
-    
-    conversations.push(newConversation);
-    await fs.writeJson(conversationsFile, conversations, { spaces: 2 });
-    
-    // 生成语音回复
+
+    // 保存到文件
+    try {
+      let conversations = [];
+      if (fs.existsSync(conversationsFile)) {
+        conversations = await fs.readJson(conversationsFile);
+      }
+      conversations.push(conversation);
+      
+      // 只保留最近的1000条记录
+      if (conversations.length > 1000) {
+        conversations = conversations.slice(-1000);
+      }
+      
+      await fs.writeJson(conversationsFile, conversations, { spaces: 2 });
+    } catch (saveError) {
+      console.error('保存对话记录失败:', saveError);
+    }
+
+    // 尝试生成语音
     let audioUrl = null;
     try {
       const voiceConfig = loadVoiceConfig();
       if (voiceConfig && voiceConfig.voiceId) {
-        console.log(`🎤 为对话生成语音回复，voice_id: ${voiceConfig.voiceId}`);
-        const audioResult = await generateMiniMaxAudio(teacherResponse, voiceConfig);
-        if (audioResult) {
-          audioUrl = audioResult;
-          console.log(`✅ 对话语音生成成功: ${audioUrl}`);
-        }
-      } else {
-        console.log('⚠️ 语音配置未找到，跳过语音生成');
+        audioUrl = await generateMiniMaxAudio(reply, voiceConfig);
+        console.log('✅ 对话语音生成成功:', audioUrl);
       }
-    } catch (error) {
-      console.log('⚠️ 语音生成失败，继续返回文本回复:', error.message);
+    } catch (voiceError) {
+      console.error('语音生成失败，将返回无语音回复:', voiceError);
     }
-    
+
     res.json({
       success: true,
-      reply: teacherResponse,
+      reply: reply,
       audioUrl: audioUrl,
-      timestamp: timestamp
+      conversationId: conversation.id
     });
+
   } catch (error) {
-    console.error('Chat API error:', error);
-    res.status(500).json({
-      success: false,
-      error: '服务器错误，请稍后重试'
+    console.error('对话API错误:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '对话生成失败',
+      details: error.message 
+    });
+  }
+});
+
+// 新增：直接返回音频数据的API（解决云平台文件存储问题）
+app.post('/api/audio', async (req, res) => {
+  try {
+    const { text } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({ success: false, error: '文本不能为空' });
+    }
+
+    const voiceConfig = loadVoiceConfig();
+    if (!voiceConfig || !voiceConfig.voiceId) {
+      return res.status(400).json({ success: false, error: '语音配置未找到' });
+    }
+
+    console.log('🎵 开始生成音频数据:', text.substring(0, 50) + '...');
+    
+    // 直接返回音频缓冲区
+    const audioBuffer = await generateMiniMaxAudio(text, voiceConfig, 'buffer');
+    
+    if (!audioBuffer || audioBuffer.length === 0) {
+      throw new Error('生成的音频数据为空');
+    }
+
+    console.log(`✅ 音频生成成功，大小: ${audioBuffer.length} bytes`);
+    
+    // 设置正确的响应头
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length,
+      'Cache-Control': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    });
+    
+    // 直接返回音频二进制数据
+    res.send(audioBuffer);
+
+  } catch (error) {
+    console.error('音频生成API错误:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '音频生成失败',
+      details: error.message 
     });
   }
 });
@@ -544,15 +604,51 @@ app.post('/api/chat', async (req, res) => {
 // 管理员API - 获取所有对话记录
 app.get('/api/admin/conversations', async (req, res) => {
   try {
-    const conversations = await fs.readJson(conversationsFile);
+    const conversationsFile = path.join(__dirname, 'data', 'conversations.json');
+    
+    // 如果文件不存在，返回空数组
+    if (!fs.existsSync(conversationsFile)) {
+      return res.json([]);
+    }
+    
+    const rawConversations = await fs.readJson(conversationsFile);
+    
+    // 确保返回数组格式
+    if (!Array.isArray(rawConversations)) {
+      return res.json([]);
+    }
+    
+    // 将单个问答记录转换为分组对话格式
+    const groupedConversations = [];
+    
+    rawConversations.forEach(record => {
+      // 为每个问答记录创建一个对话
+      const conversation = {
+        id: record.id,
+        user_id: record.userId || 'anonymous',
+        timestamp: record.timestamp,
+        messages: [
+          {
+            role: 'user',
+            content: record.userMessage || ''
+          },
+          {
+            role: 'assistant',
+            content: record.teacherResponse || ''
+          }
+        ]
+      };
+      groupedConversations.push(conversation);
+    });
     
     // 按时间倒序排列（最新的在前面）
-    const sortedConversations = conversations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const sortedConversations = groupedConversations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     res.json(sortedConversations);
   } catch (error) {
     console.error('获取对话记录失败:', error);
-    res.status(500).json({ success: false, error: '获取对话记录失败' });
+    // 出错时返回空数组而不是错误，避免前端崩溃
+    res.json([]);
   }
 });
 
@@ -688,8 +784,8 @@ app.get('/api/uploads', async (req, res) => {
 // MiniMax API配置
 const MINIMAX_API_BASE = 'https://api.minimaxi.com';
 
-// MiniMax语音合成函数
-async function generateMiniMaxAudio(text, voiceConfig) {
+// 音频生成优化 - 支持直接返回音频数据
+async function generateMiniMaxAudio(text, voiceConfig, returnType = 'url') {
     try {
         console.log(`开始MiniMax语音合成: 文本="${text}", voice_id="${voiceConfig.voiceId}"`);
         
@@ -801,18 +897,24 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                         if (downloadResponse.ok && downloadResponse.headers.get('content-type')?.includes('audio')) {
                             const audioBuffer = await downloadResponse.arrayBuffer();
                             if (audioBuffer.byteLength > 1000) {
-                                const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
-                                const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
-                                
-                                const audioDir = path.dirname(audioPath);
-                                if (!fs.existsSync(audioDir)) {
-                                    fs.mkdirSync(audioDir, { recursive: true });
+                                // 根据返回类型处理
+                                if (returnType === 'buffer') {
+                                    console.log(`✅ 通过file_id获取音频数据成功，大小: ${audioBuffer.byteLength} bytes`);
+                                    return Buffer.from(audioBuffer);
+                                } else {
+                                    const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                                    const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                                    
+                                    const audioDir = path.dirname(audioPath);
+                                    if (!fs.existsSync(audioDir)) {
+                                        fs.mkdirSync(audioDir, { recursive: true });
+                                    }
+                                    
+                                    fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
+                                    const audioUrl = `/audio/${audioFileName}`;
+                                    console.log(`通过file_id下载音频成功，保存到: ${audioUrl}`);
+                                    return audioUrl;
                                 }
-                                
-                                fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
-                                const audioUrl = `/audio/${audioFileName}`;
-                                console.log(`通过file_id下载音频成功，保存到: ${audioUrl}`);
-                                return audioUrl;
                             }
                         }
                     } catch (downloadError) {
@@ -828,7 +930,7 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                     return audioData;
                 }
                 
-                // 如果是音频数据字符串，需要解码保存
+                // 如果是音频数据字符串，需要解码保存或返回
                 if (typeof audioData === 'string' && audioData.length > 100) {
                     try {
                         let audioBuffer;
@@ -843,21 +945,28 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                             console.log('检测到base64音频数据，进行转换');
                             audioBuffer = Buffer.from(audioData, 'base64');
                         }
-                        const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
-                        const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
                         
-                        // 确保audio目录存在
-                        const audioDir = path.dirname(audioPath);
-                        if (!fs.existsSync(audioDir)) {
-                            fs.mkdirSync(audioDir, { recursive: true });
+                        // 根据返回类型处理
+                        if (returnType === 'buffer') {
+                            console.log(`✅ MiniMax语音合成成功，返回音频缓冲区，大小: ${audioBuffer.length} bytes`);
+                            return audioBuffer;
+                        } else {
+                            const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                            const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                            
+                            // 确保audio目录存在
+                            const audioDir = path.dirname(audioPath);
+                            if (!fs.existsSync(audioDir)) {
+                                fs.mkdirSync(audioDir, { recursive: true });
+                            }
+                            
+                            fs.writeFileSync(audioPath, audioBuffer);
+                            const audioUrl = `/audio/${audioFileName}`;
+                            console.log(`✅ MiniMax语音合成成功，音频保存到: ${audioUrl}`);
+                            return audioUrl;
                         }
-                        
-                        fs.writeFileSync(audioPath, audioBuffer);
-                        const audioUrl = `/audio/${audioFileName}`;
-                        console.log(`✅ MiniMax语音合成成功，音频保存到: ${audioUrl}`);
-                        return audioUrl;
                     } catch (decodeError) {
-                        console.error('Base64解码失败:', decodeError);
+                        console.error('音频解码失败:', decodeError);
                     }
                 }
             }
@@ -874,36 +983,41 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                         if (typeof value === 'string' && value.length > 10000) {
                             // 可能是base64编码的音频数据
                             console.log(`发现可能的base64音频数据在: ${currentPath}, 长度: ${value.length}`);
-                                                         try {
+                            try {
                                  let audioBuffer;
                                  
                                  // 检查数据格式：十六进制还是base64
                                  const isHex = /^[0-9a-fA-F]+$/.test(value.substring(0, 100));
                                  
                                  if (isHex) {
-                                     console.log(`检测到十六进制音频数据在: ${currentPath}`);
                                      audioBuffer = Buffer.from(value, 'hex');
                                  } else {
-                                     console.log(`检测到base64音频数据在: ${currentPath}`);
                                      audioBuffer = Buffer.from(value, 'base64');
                                  }
-                                if (audioBuffer.length > 1000) {
-                                    const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
-                                    const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
-                                    
-                                    const audioDir = path.dirname(audioPath);
-                                    if (!fs.existsSync(audioDir)) {
-                                        fs.mkdirSync(audioDir, { recursive: true });
-                                    }
-                                    
-                                    fs.writeFileSync(audioPath, audioBuffer);
-                                    const audioUrl = `/audio/${audioFileName}`;
-                                    console.log(`✅ Base64音频解码成功，保存到: ${audioUrl}`);
-                                    return audioUrl;
-                                }
-                            } catch (decodeError) {
-                                console.log(`Base64解码失败 (${currentPath}):`, decodeError.message);
-                            }
+                                 
+                                 // 验证是否是有效的音频数据（检查文件头）
+                                 if (audioBuffer.length > 1000) {
+                                     if (returnType === 'buffer') {
+                                         console.log(`✅ 找到有效音频数据，返回缓冲区，大小: ${audioBuffer.length} bytes`);
+                                         return audioBuffer;
+                                     } else {
+                                         const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                                         const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+                                         
+                                         const audioDir = path.dirname(audioPath);
+                                         if (!fs.existsSync(audioDir)) {
+                                             fs.mkdirSync(audioDir, { recursive: true });
+                                         }
+                                         
+                                         fs.writeFileSync(audioPath, audioBuffer);
+                                         const audioUrl = `/audio/${audioFileName}`;
+                                         console.log(`✅ 找到有效音频数据，保存到: ${audioUrl}`);
+                                         return audioUrl;
+                                     }
+                                 }
+                             } catch (decodeError) {
+                                 console.log(`无法解码 ${currentPath}:`, decodeError.message);
+                             }
                         } else if (typeof value === 'object' && value !== null) {
                             const result = findBase64Audio(value, currentPath);
                             if (result) return result;
@@ -912,91 +1026,40 @@ async function generateMiniMaxAudio(text, voiceConfig) {
                     return null;
                 };
                 
-                const base64AudioUrl = findBase64Audio(responseData);
-                if (base64AudioUrl) {
-                    console.log('成功通过base64搜索找到音频数据');
-                    return base64AudioUrl;
+                const audioResult = findBase64Audio(responseData);
+                if (audioResult) {
+                    return audioResult;
                 }
-                
-                // 如果还是没找到，尝试重新以流的方式请求
-                console.log('未找到base64音频数据，尝试重新请求为流式响应');
-                try {
-                    const streamResponse = await fetch(`https://api.minimaxi.com/v1/t2a_v2?GroupId=${voiceConfig.groupId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${voiceConfig.apiKey}`,
-                            'Content-Type': 'application/json',
-                            'Accept': 'audio/mpeg, application/octet-stream'
-                        },
-                        body: JSON.stringify(payload)
-                    });
+            }
+        } else {
+            // 如果返回的是直接的音频数据
+            const audioBuffer = await response.arrayBuffer();
+            if (audioBuffer.byteLength > 1000) {
+                if (returnType === 'buffer') {
+                    console.log(`✅ 获取音频数据成功，大小: ${audioBuffer.byteLength} bytes`);
+                    return Buffer.from(audioBuffer);
+                } else {
+                    const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
+                    const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
                     
-                    if (streamResponse.ok && !streamResponse.headers.get('content-type')?.includes('json')) {
-                        const audioBuffer = await streamResponse.arrayBuffer();
-                        if (audioBuffer.byteLength > 1000) {
-                            const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
-                            const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
-                            
-                            const audioDir = path.dirname(audioPath);
-                            if (!fs.existsSync(audioDir)) {
-                                fs.mkdirSync(audioDir, { recursive: true });
-                            }
-                            
-                            fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
-                            const audioUrl = `/audio/${audioFileName}`;
-                            console.log(`流式请求成功，音频保存到: ${audioUrl}`);
-                            return audioUrl;
-                        }
+                    const audioDir = path.dirname(audioPath);
+                    if (!fs.existsSync(audioDir)) {
+                        fs.mkdirSync(audioDir, { recursive: true });
                     }
-                } catch (streamError) {
-                    console.error('流式请求失败:', streamError);
+                    
+                    fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
+                    const audioUrl = `/audio/${audioFileName}`;
+                    console.log(`✅ MiniMax语音合成成功，音频保存到: ${audioUrl}`);
+                    return audioUrl;
                 }
             }
-            
-            // 如果所有方法都没有找到音频数据，抛出错误
-            console.error('所有音频数据提取方法都失败，JSON响应结构:', Object.keys(responseData));
-            throw new Error('API响应中未找到可用的音频数据');
-        }
-
-        // MiniMax TTS API返回音频文件流
-        const audioBuffer = await response.arrayBuffer();
-        
-        // 检查音频数据大小
-        if (audioBuffer.byteLength < 1000) {
-            console.error('音频数据太小:', audioBuffer.byteLength, '字节');
-            // 尝试解析为JSON查看错误
-            try {
-                const textData = new TextDecoder().decode(audioBuffer);
-                console.error('小文件内容:', textData);
-                const errorData = JSON.parse(textData);
-                if (errorData.base_resp) {
-                    throw new Error(`MiniMax API错误: ${errorData.base_resp.status_msg}`);
-                }
-            } catch (parseError) {
-                // 如果不是JSON，继续处理
-            }
-            throw new Error('返回的音频数据无效（文件太小）');
         }
         
-        // 保存音频文件
-        const audioFileName = `synthesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.mp3`;
-        const audioPath = path.join(__dirname, 'public', 'audio', audioFileName);
+        throw new Error('未找到有效的音频数据');
         
-        // 确保audio目录存在
-        const audioDir = path.dirname(audioPath);
-        if (!fs.existsSync(audioDir)) {
-            fs.mkdirSync(audioDir, { recursive: true });
-        }
-        
-        fs.writeFileSync(audioPath, Buffer.from(audioBuffer));
-        
-        const audioUrl = `/audio/${audioFileName}`;
-        console.log(`语音合成成功，音频保存到: ${audioUrl}`);
-        
-        return audioUrl;
     } catch (error) {
-        console.error('MiniMax语音合成详细错误:', error);
-        throw new Error(`MiniMax语音合成失败: ${error.message}`);
+        console.error('MiniMax语音合成失败:', error);
+        throw error;
     }
 }
 

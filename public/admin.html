@@ -1,1 +1,700 @@
- 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员面板 - 刘蔚涛老师AI对话系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .header p {
+            color: #666;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .conversations {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .conversations h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .conversation-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .conversation-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .conversation-meta span {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 5px;
+        }
+
+        .conversation-content {
+            margin-top: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .message.user {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .message.ai {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+
+        .message-label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .message-text {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h4 {
+            margin-bottom: 10px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .controls, .conversations {
+                padding: 20px;
+            }
+            
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .conversation-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ 管理员面板</h1>
+            <p>刘蔚涛老师AI对话系统 - 数据管理与统计</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalConversations">-</div>
+                <div class="stat-label">总对话数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="uniqueUsers">-</div>
+                <div class="stat-label">用户数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayConversations">-</div>
+                <div class="stat-label">今日对话</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgResponseTime">-</div>
+                <div class="stat-label">平均响应时间</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🔍 搜索与筛选</h3>
+            <div class="search-grid">
+                <div class="form-group">
+                    <label for="searchKeyword">关键词搜索</label>
+                    <input type="text" id="searchKeyword" placeholder="输入关键词搜索对话内容...">
+                </div>
+                <div class="form-group">
+                    <label for="searchUser">用户ID</label>
+                    <input type="text" id="searchUser" placeholder="输入用户ID...">
+                </div>
+                <div class="form-group">
+                    <label for="dateFrom">开始日期</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                <div class="form-group">
+                    <label for="dateTo">结束日期</label>
+                    <input type="date" id="dateTo">
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="searchConversations()">🔍 搜索</button>
+                <button class="btn btn-secondary" onclick="clearSearch()">🔄 清空</button>
+                <button class="btn btn-success" onclick="exportData()">📊 导出CSV</button>
+                <button class="btn btn-secondary" onclick="refreshData()">♻️ 刷新数据</button>
+            </div>
+        </div>
+
+        <div class="conversations">
+            <h3>💬 对话记录</h3>
+            <div id="conversationsList">
+                <div class="loading">正在加载数据...</div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let allConversations = [];
+        let filteredConversations = [];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConversations();
+            updateStats();
+        });
+
+        // 加载对话数据
+        async function loadConversations() {
+            try {
+                const response = await fetch('/api/admin/conversations');
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('管理员API接口未找到，请检查服务器配置');
+                    }
+                    throw new Error('获取数据失败: ' + response.status);
+                }
+                const data = await response.json();
+                // 确保数据是数组格式
+                allConversations = Array.isArray(data) ? data : [];
+                filteredConversations = allConversations;
+                displayConversations();
+                updatePagination();
+            } catch (error) {
+                console.error('加载对话失败:', error);
+                // 初始化为空数组，避免undefined错误
+                allConversations = [];
+                filteredConversations = [];
+                document.getElementById('conversationsList').innerHTML = 
+                    '<div class="error">加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 更新统计数据
+        async function updateStats() {
+            try {
+                const stats = calculateStats();
+                document.getElementById('totalConversations').textContent = stats.total;
+                document.getElementById('uniqueUsers').textContent = stats.users;
+                document.getElementById('todayConversations').textContent = stats.today;
+                document.getElementById('avgResponseTime').textContent = stats.avgTime;
+            } catch (error) {
+                console.error('更新统计失败:', error);
+            }
+        }
+
+        // 计算统计数据
+        function calculateStats() {
+            // 安全检查，确保allConversations是数组
+            if (!Array.isArray(allConversations)) {
+                return {
+                    total: 0,
+                    users: 0,
+                    today: 0,
+                    avgTime: '< 2s'
+                };
+            }
+
+            const today = new Date().toDateString();
+            const uniqueUsers = new Set(allConversations.map(c => c.user_id)).size;
+            const todayConversations = allConversations.filter(c => 
+                new Date(c.timestamp).toDateString() === today
+            ).length;
+
+            return {
+                total: allConversations.length,
+                users: uniqueUsers,
+                today: todayConversations,
+                avgTime: '< 2s'
+            };
+        }
+
+        // 显示对话列表
+        function displayConversations() {
+            const container = document.getElementById('conversationsList');
+            
+            // 安全检查，确保filteredConversations是数组
+            if (!Array.isArray(filteredConversations) || filteredConversations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h4>😔 暂无数据</h4><p>没有找到符合条件的对话记录</p></div>';
+                return;
+            }
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageConversations = filteredConversations.slice(start, end);
+
+            container.innerHTML = pageConversations.map(conversation => {
+                // 安全检查conversation对象
+                if (!conversation || !conversation.user_id) {
+                    return '<div class="conversation-item"><div class="error">数据格式错误</div></div>';
+                }
+                
+                const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+                
+                return '<div class="conversation-item">' +
+                    '<div class="conversation-header">' +
+                        '<div class="conversation-meta">' +
+                            '<span>👤 ' + (conversation.user_id || '未知用户') + '</span>' +
+                            '<span>🕒 ' + formatDate(conversation.timestamp || new Date()) + '</span>' +
+                            '<span>💬 ' + messages.length + ' 条消息</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="conversation-content">' +
+                        messages.map(msg => {
+                            if (!msg || !msg.content) return '';
+                            return '<div class="message ' + (msg.role || 'unknown') + '">' +
+                                '<div class="message-label">' + (msg.role === 'user' ? '用户' : '刘蔚涛老师') + '</div>' +
+                                '<div class="message-text">' + msg.content + '</div>' +
+                            '</div>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        // 格式化日期
+        function formatDate(date, type = 'display') {
+            const d = new Date(date);
+            
+            if (type === 'file') {
+                return d.toISOString().slice(0, 19).replace(/[:]/g, '-');
+            }
+            
+            return d.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 更新分页
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let paginationHTML = '';
+            
+            // 上一页
+            if (currentPage > 1) {
+                paginationHTML += '<button class="btn btn-secondary" onclick="changePage(' + (currentPage - 1) + ')">« 上一页</button>';
+            }
+            
+            // 页码
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                const activeClass = i === currentPage ? 'btn-primary' : 'btn-secondary';
+                paginationHTML += '<button class="btn ' + activeClass + '" onclick="changePage(' + i + ')">' + i + '</button>';
+            }
+            
+            // 下一页
+            if (currentPage < totalPages) {
+                paginationHTML += '<button class="btn btn-secondary" onclick="changePage(' + (currentPage + 1) + ')">下一页 »</button>';
+            }
+            
+            pagination.innerHTML = paginationHTML;
+        }
+
+        // 切换页面
+        function changePage(page) {
+            currentPage = page;
+            displayConversations();
+            updatePagination();
+        }
+
+        // 搜索对话
+        function searchConversations() {
+            // 安全检查，确保allConversations是数组
+            if (!Array.isArray(allConversations)) {
+                filteredConversations = [];
+                displayConversations();
+                updatePagination();
+                return;
+            }
+
+            const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+            const userId = document.getElementById('searchUser').value.toLowerCase();
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            filteredConversations = allConversations.filter(conversation => {
+                // 安全检查conversation对象
+                if (!conversation) return false;
+                
+                let match = true;
+
+                // 关键词搜索
+                if (keyword) {
+                    const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+                    const hasKeyword = messages.some(msg => 
+                        msg && msg.content && msg.content.toLowerCase().includes(keyword)
+                    );
+                    match = match && hasKeyword;
+                }
+
+                // 用户ID搜索
+                if (userId) {
+                    const userIdStr = conversation.user_id || '';
+                    match = match && userIdStr.toLowerCase().includes(userId);
+                }
+
+                // 日期范围搜索
+                if (dateFrom) {
+                    const conversationDate = new Date(conversation.timestamp || 0);
+                    const fromDate = new Date(dateFrom);
+                    match = match && conversationDate >= fromDate;
+                }
+
+                if (dateTo) {
+                    const conversationDate = new Date(conversation.timestamp || 0);
+                    const toDate = new Date(dateTo + ' 23:59:59');
+                    match = match && conversationDate <= toDate;
+                }
+
+                return match;
+            });
+
+            currentPage = 1;
+            displayConversations();
+            updatePagination();
+        }
+
+        // 清空搜索
+        function clearSearch() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchUser').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            
+            filteredConversations = allConversations;
+            currentPage = 1;
+            displayConversations();
+            updatePagination();
+        }
+
+        // 刷新数据
+        function refreshData() {
+            document.getElementById('conversationsList').innerHTML = 
+                '<div class="loading">正在刷新数据...</div>';
+            loadConversations();
+            updateStats();
+        }
+
+        // 导出CSV
+        function exportData() {
+            if (filteredConversations.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+
+            const csvContent = generateCSV(filteredConversations);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'conversations_' + formatDate(new Date(), 'file') + '.csv');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 生成CSV内容
+        function generateCSV(conversations) {
+            const headers = ['时间', '用户ID', '用户消息', 'AI回复'];
+            const rows = [];
+
+            conversations.forEach(conversation => {
+                const messages = conversation.messages;
+                for (let i = 0; i < messages.length; i += 2) {
+                    const userMsg = messages[i];
+                    const aiMsg = messages[i + 1];
+                    
+                    if (userMsg && aiMsg) {
+                        rows.push([
+                            formatDate(conversation.timestamp),
+                            conversation.user_id,
+                            '"' + userMsg.content.replace(/"/g, '""') + '"',
+                            '"' + aiMsg.content.replace(/"/g, '""') + '"'
+                        ]);
+                    }
+                }
+            });
+
+            const csvContent = [headers.join(',')].concat(rows.map(row => row.join(','))).join('\n');
+            return '\ufeff' + csvContent; // 添加BOM以支持中文
+        }
+
+        // 回车搜索
+        document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchConversations();
+            }
+        });
+
+        document.getElementById('searchUser').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchConversations();
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,10 +1,12 @@
 {
   "platform": "siliconflow",
-  "apiKey": "sk-rxvomaryngzrvzjxfkinvyzpobcidsaqopuslsrurwmreuhv",
+  "apiKey": "sk-ybkmtrltrtstpbtemkuykyfhbwcbjdlrevpzhuuegiwsxnqv",
   "baseURL": "https://api.siliconflow.cn/v1",
   "model": "deepseek-ai/DeepSeek-V3",
   "maxTokens": 4000,
   "temperature": 0.7,
   "enabled": true,
-  "description": "SiliconFlow Deepseek模型用于智能对话和知识库分析"
+  "description": "SiliconFlow DeepSeek-V3模型用于智能对话和知识库分析",
+  "updateTime": "2025-01-29T18:00:00Z",
+  "version": "V3"
 } 

@@ -59,9 +59,9 @@ function sendMessage() {
         if (data.success) {
             displayMessage(data.reply || data.response, 'teacher');
             
-            // 语音处理逻辑改进
+            // 优化的语音处理逻辑
             if (data.audioUrl) {
-                console.log('🎵 收到语音回复:', data.audioUrl);
+                console.log('🎵 收到语音回复链接:', data.audioUrl);
                 console.log('🔊 语音开关状态:', isVoiceEnabled ? '已开启' : '已关闭');
                 
                 if (isVoiceEnabled) {
@@ -69,11 +69,16 @@ function sendMessage() {
                     playAudio(data.audioUrl);
                 } else {
                     console.log('💡 提示：语音功能已关闭，点击右上角"语音开启"按钮可听到语音回复');
-                    // 显示语音提示
                     showVoiceTip();
                 }
             } else {
-                console.log('❌ 本次回复无语音内容');
+                // 尝试使用新的音频API生成语音
+                if (isVoiceEnabled) {
+                    console.log('🎵 尝试生成语音回复...');
+                    generateAndPlayAudio(data.reply || data.response);
+                } else {
+                    console.log('❌ 本次回复无语音内容');
+                }
             }
         } else {
             displayMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'teacher');
@@ -84,6 +89,211 @@ function sendMessage() {
         hideLoadingOverlay();
         displayMessage('网络连接出现问题，请检查网络后重试。', 'teacher');
     });
+}
+
+// 新增：生成并播放音频（使用新的音频API）
+async function generateAndPlayAudio(text) {
+    if (!text || !isVoiceEnabled) return;
+    
+    try {
+        console.log('🎵 调用音频生成API...');
+        const response = await fetch('/api/audio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`音频生成失败: ${response.status}`);
+        }
+        
+        // 检查响应类型
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('audio')) {
+            // 获取音频二进制数据
+            const audioBlob = await response.blob();
+            console.log(`✅ 获取音频数据成功，大小: ${audioBlob.size} bytes`);
+            
+            // 创建 blob URL
+            const audioUrl = URL.createObjectURL(audioBlob);
+            console.log('🎵 创建 blob URL:', audioUrl);
+            
+            // 播放音频
+            playAudioBlob(audioUrl);
+        } else {
+            // 如果返回的是JSON（错误信息）
+            const errorData = await response.json();
+            throw new Error(errorData.error || '音频生成失败');
+        }
+    } catch (error) {
+        console.error('生成音频失败:', error);
+        // 显示错误提示但不阻止正常使用
+        showAudioError('语音生成失败: ' + error.message);
+    }
+}
+
+// 新增：播放blob音频
+function playAudioBlob(blobUrl) {
+    if (!isVoiceEnabled) {
+        console.log('语音未开启，跳过播放');
+        // 释放blob URL
+        URL.revokeObjectURL(blobUrl);
+        return;
+    }
+    
+    console.log('尝试播放blob音频:', blobUrl);
+    
+    // 停止当前音频
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+    
+    try {
+        currentAudio = new Audio(blobUrl);
+        
+        // 添加音频事件监听
+        currentAudio.addEventListener('loadstart', () => {
+            console.log('开始加载音频');
+        });
+        
+        currentAudio.addEventListener('canplay', () => {
+            console.log('音频可以播放');
+        });
+        
+        currentAudio.addEventListener('play', () => {
+            console.log('音频开始播放');
+        });
+        
+        currentAudio.addEventListener('ended', () => {
+            console.log('音频播放完成');
+            currentAudio = null;
+            // 释放blob URL
+            URL.revokeObjectURL(blobUrl);
+            // 移除播放指示器
+            const indicator = document.querySelector('.playing-indicator');
+            if (indicator && indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        });
+        
+        currentAudio.addEventListener('error', (e) => {
+            console.error('音频加载/播放错误:', e);
+            // 释放blob URL
+            URL.revokeObjectURL(blobUrl);
+            showAudioError('音频播放失败');
+        });
+        
+        // 尝试播放
+        const playPromise = currentAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 音频播放成功');
+                showPlayingIndicator();
+            }).catch(error => {
+                console.error('❌ 音频播放失败:', error);
+                // 释放blob URL
+                URL.revokeObjectURL(blobUrl);
+                if (error.name === 'NotAllowedError') {
+                    showAudioPermissionTip();
+                } else {
+                    showAudioError('音频播放失败');
+                }
+            });
+        }
+    } catch (error) {
+        console.error('创建音频对象失败:', error);
+        // 释放blob URL
+        URL.revokeObjectURL(blobUrl);
+        showAudioError('音频创建失败');
+    }
+}
+
+// 修改原有的playAudio函数（保持向后兼容）
+function playAudio(audioUrl) {
+    if (!isVoiceEnabled) {
+        console.log('语音未开启，跳过播放');
+        return;
+    }
+    
+    console.log('尝试播放语音:', audioUrl);
+    
+    // 停止当前音频
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+    
+    try {
+        currentAudio = new Audio(audioUrl);
+        
+        // 添加音频事件监听
+        currentAudio.addEventListener('loadstart', () => {
+            console.log('开始加载音频');
+        });
+        
+        currentAudio.addEventListener('canplay', () => {
+            console.log('音频可以播放');
+        });
+        
+        currentAudio.addEventListener('play', () => {
+            console.log('音频开始播放');
+        });
+        
+        currentAudio.addEventListener('ended', () => {
+            console.log('音频播放完成');
+            currentAudio = null;
+            // 移除播放指示器
+            const indicator = document.querySelector('.playing-indicator');
+            if (indicator && indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        });
+        
+        currentAudio.addEventListener('error', (e) => {
+            console.error('音频加载/播放错误:', e);
+            // 如果传统URL加载失败，尝试使用新的音频API
+            console.log('🔄 传统音频URL失败，尝试音频API...');
+            const lastTeacherMessage = document.querySelector('.teacher-message:last-child .message-text');
+            if (lastTeacherMessage) {
+                const text = lastTeacherMessage.textContent || lastTeacherMessage.innerText;
+                generateAndPlayAudio(text);
+            } else {
+                showAudioError('音频加载失败');
+            }
+        });
+        
+        // 尝试播放
+        const playPromise = currentAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 音频播放成功');
+                showPlayingIndicator();
+            }).catch(error => {
+                console.error('❌ 音频播放失败:', error);
+                if (error.name === 'NotAllowedError') {
+                    showAudioPermissionTip();
+                } else {
+                    // 如果播放失败，尝试使用新的音频API
+                    console.log('🔄 传统音频播放失败，尝试音频API...');
+                    const lastTeacherMessage = document.querySelector('.teacher-message:last-child .message-text');
+                    if (lastTeacherMessage) {
+                        const text = lastTeacherMessage.textContent || lastTeacherMessage.innerText;
+                        generateAndPlayAudio(text);
+                    } else {
+                        showAudioError('音频播放失败');
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('创建音频对象失败:', error);
+        showAudioError('音频创建失败');
+    }
 }
 
 // 隐藏推荐问题区域
@@ -186,73 +396,6 @@ function updateVoiceButton() {
     }
 }
 
-function playAudio(audioUrl) {
-    if (!isVoiceEnabled) {
-        console.log('语音未开启，跳过播放');
-        return;
-    }
-    
-    console.log('尝试播放语音:', audioUrl);
-    
-    // 停止当前音频
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
-    
-    try {
-        currentAudio = new Audio(audioUrl);
-        
-        // 添加音频事件监听
-        currentAudio.addEventListener('loadstart', () => {
-            console.log('开始加载音频');
-        });
-        
-        currentAudio.addEventListener('canplay', () => {
-            console.log('音频可以播放');
-        });
-        
-        currentAudio.addEventListener('play', () => {
-            console.log('音频开始播放');
-        });
-        
-        currentAudio.addEventListener('ended', () => {
-            console.log('音频播放完成');
-            currentAudio = null;
-            // 移除播放指示器
-            const indicator = document.querySelector('.playing-indicator');
-            if (indicator && indicator.parentNode) {
-                indicator.parentNode.removeChild(indicator);
-            }
-        });
-        
-        currentAudio.addEventListener('error', (e) => {
-            console.error('音频加载/播放错误:', e);
-            showAudioError();
-        });
-        
-        // 尝试播放
-        const playPromise = currentAudio.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log('✅ 音频播放成功');
-                showPlayingIndicator();
-            }).catch(error => {
-                console.error('❌ 音频播放失败:', error);
-                if (error.name === 'NotAllowedError') {
-                    showAudioPermissionTip();
-                } else {
-                    showAudioError();
-                }
-            });
-        }
-    } catch (error) {
-        console.error('创建音频对象失败:', error);
-        showAudioError();
-    }
-}
-
 // 显示音频权限提示
 function showAudioPermissionTip() {
     const tip = document.createElement('div');
@@ -295,7 +438,7 @@ function showAudioPermissionTip() {
 }
 
 // 显示音频错误提示
-function showAudioError() {
+function showAudioError(message) {
     const tip = document.createElement('div');
     tip.style.cssText = `
         position: fixed;
@@ -310,7 +453,7 @@ function showAudioError() {
         font-size: 14px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
-    tip.textContent = '❌ 语音播放失败，请检查网络连接';
+    tip.textContent = message || '❌ 语音播放失败，请检查网络连接';
     document.body.appendChild(tip);
     
     setTimeout(() => {
