@@ -541,6 +541,21 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// 管理员API - 获取所有对话记录
+app.get('/api/admin/conversations', async (req, res) => {
+  try {
+    const conversations = await fs.readJson(conversationsFile);
+    
+    // 按时间倒序排列（最新的在前面）
+    const sortedConversations = conversations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    res.json(sortedConversations);
+  } catch (error) {
+    console.error('获取对话记录失败:', error);
+    res.status(500).json({ success: false, error: '获取对话记录失败' });
+  }
+});
+
 // 导出对话记录
 app.get('/api/export-conversations', async (req, res) => {
   try {
