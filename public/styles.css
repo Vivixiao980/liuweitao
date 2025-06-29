@@ -188,7 +188,7 @@ body {
     gap: 1rem;
 }
 
-.btn-voice, .btn-export {
+.btn-voice, .btn-export, .btn-admin {
     padding: 0.8rem 1.6rem;
     border: none;
     border-radius: var(--border-radius-small);
@@ -226,6 +226,18 @@ body {
     background: #e2e8f0;
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+.btn-admin {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    box-shadow: var(--shadow-medium);
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, #d97706, #ea580c);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-heavy);
 }
 
 /* 推荐问题区域 */
@@ -599,7 +611,7 @@ body {
         gap: 0.5rem;
     }
     
-    .btn-voice, .btn-export {
+    .btn-voice, .btn-export, .btn-admin {
         padding: 0.6rem 1rem;
         font-size: 0.8rem;
     }
@@ -693,7 +705,7 @@ body {
     }
     
     /* 语音按钮保持文字显示 */
-    .btn-voice, .btn-export {
+    .btn-voice, .btn-export, .btn-admin {
         min-width: 100px;
         padding: 0.8rem 1rem;
         border-radius: 25px;
