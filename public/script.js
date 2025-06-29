@@ -3,6 +3,10 @@ let isVoiceEnabled = true; // 默认开启语音功能
 let currentAudio = null;
 let messageCount = 0;
 
+// 移动端音频初始化标志
+let mobileAudioInitialized = false;
+let userHasInteracted = false;
+
 // 初始化函数
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -14,6 +18,11 @@ function initializeApp() {
     updateCharCounter();
     loadVoiceState();
     initializeKeyboardShortcuts();
+    
+    // 移动端音频初始化
+    if (isMobile()) {
+        initializeMobileAudio();
+    }
 }
 
 // 推荐问题点击功能
@@ -140,6 +149,12 @@ function playAudioBlob(blobUrl) {
         console.log('语音未开启，跳过播放');
         // 释放blob URL
         URL.revokeObjectURL(blobUrl);
+        return;
+    }
+    
+    // 移动端使用专用播放函数
+    if (isMobile()) {
+        playAudioOnMobile(blobUrl);
         return;
     }
     
@@ -752,4 +767,264 @@ window.addEventListener('offline', function() {
 });
 
 // 初始化完成提示
-console.log('🎉 刘蔚涛老师智能对话系统已加载完成！'); 
+console.log('🎉 刘蔚涛老师智能对话系统已加载完成！');
+
+// 移动端音频初始化
+function initializeMobileAudio() {
+    if (mobileAudioInitialized || !isMobile()) return;
+    
+    console.log('🔧 初始化移动端音频支持...');
+    
+    // 创建一个静音音频来"解锁"音频播放
+    const unlockAudio = () => {
+        if (userHasInteracted) return;
+        
+        const audio = new Audio();
+        // 使用一个很短的静音音频数据URI
+        audio.src = 'data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoAAACA';
+        audio.volume = 0;
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 移动端音频已解锁');
+                userHasInteracted = true;
+                audio.pause();
+                audio.src = '';
+                
+                // 显示音频可用提示
+                if (isVoiceEnabled) {
+                    showMobileAudioReady();
+                }
+            }).catch(() => {
+                console.log('⚠️ 移动端音频解锁失败，等待用户交互');
+            });
+        }
+    };
+    
+    // 监听用户交互事件
+    const interactionEvents = ['touchstart', 'touchend', 'click', 'tap'];
+    const handleInteraction = () => {
+        unlockAudio();
+        // 只需要解锁一次
+        interactionEvents.forEach(event => {
+            document.removeEventListener(event, handleInteraction);
+        });
+    };
+    
+    interactionEvents.forEach(event => {
+        document.addEventListener(event, handleInteraction, { once: true });
+    });
+    
+    mobileAudioInitialized = true;
+}
+
+// 显示移动端音频就绪提示
+function showMobileAudioReady() {
+    if (!isMobile()) return;
+    
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #10b981;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 20px;
+        z-index: 10000;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 90%;
+        text-align: center;
+    `;
+    tip.textContent = '🎵 移动端语音已启用！';
+    document.body.appendChild(tip);
+    
+    setTimeout(() => {
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+    }, 2000);
+}
+
+// 改进的移动端音频播放函数
+function playAudioOnMobile(blobUrl) {
+    if (!isMobile()) {
+        playAudioBlob(blobUrl);
+        return;
+    }
+    
+    console.log('📱 移动端音频播放:', blobUrl);
+    
+    // 检查用户是否已交互
+    if (!userHasInteracted) {
+        console.log('⚠️ 移动端需要用户交互后才能播放音频');
+        showMobileAudioPermissionTip();
+        return;
+    }
+    
+    // 停止当前音频
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+    
+    try {
+        currentAudio = new Audio();
+        currentAudio.preload = 'auto';
+        currentAudio.volume = 1.0;
+        
+        // 移动端专用事件监听
+        currentAudio.addEventListener('loadstart', () => {
+            console.log('📱 移动端音频开始加载');
+        });
+        
+        currentAudio.addEventListener('canplaythrough', () => {
+            console.log('📱 移动端音频可以播放');
+        });
+        
+        currentAudio.addEventListener('play', () => {
+            console.log('📱 移动端音频开始播放');
+            showPlayingIndicator();
+        });
+        
+        currentAudio.addEventListener('ended', () => {
+            console.log('📱 移动端音频播放完成');
+            currentAudio = null;
+            URL.revokeObjectURL(blobUrl);
+            const indicator = document.querySelector('.playing-indicator');
+            if (indicator && indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        });
+        
+        currentAudio.addEventListener('error', (e) => {
+            console.error('📱 移动端音频播放错误:', e);
+            URL.revokeObjectURL(blobUrl);
+            showMobileAudioError('移动端音频播放失败，请检查网络连接');
+        });
+        
+        // 设置音频源
+        currentAudio.src = blobUrl;
+        
+        // 尝试播放
+        const playPromise = currentAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 移动端音频播放成功');
+            }).catch(error => {
+                console.error('❌ 移动端音频播放失败:', error);
+                URL.revokeObjectURL(blobUrl);
+                
+                if (error.name === 'NotAllowedError') {
+                    showMobileAudioPermissionTip();
+                } else if (error.name === 'NotSupportedError') {
+                    showMobileAudioError('您的设备不支持此音频格式');
+                } else {
+                    showMobileAudioError('移动端音频播放失败');
+                }
+            });
+        }
+    } catch (error) {
+        console.error('📱 创建移动端音频对象失败:', error);
+        URL.revokeObjectURL(blobUrl);
+        showMobileAudioError('移动端音频创建失败');
+    }
+}
+
+// 移动端音频权限提示
+function showMobileAudioPermissionTip() {
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        z-index: 10000;
+        font-size: 16px;
+        text-align: center;
+        max-width: 90%;
+        line-height: 1.5;
+    `;
+    tip.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 10px;">🔊</div>
+        <div>请点击下方按钮启用语音播放</div>
+        <button id="enableMobileAudio" style="
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+            cursor: pointer;
+        ">启用语音播放</button>
+    `;
+    
+    document.body.appendChild(tip);
+    
+    // 点击启用按钮
+    const enableButton = tip.querySelector('#enableMobileAudio');
+    enableButton.addEventListener('click', () => {
+        initializeMobileAudio();
+        userHasInteracted = true;
+        
+        // 移除提示
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+        
+        // 重新尝试播放最新音频
+        const lastTeacherMessage = document.querySelector('.teacher-message:last-child .message-text');
+        if (lastTeacherMessage) {
+            const text = lastTeacherMessage.textContent || lastTeacherMessage.innerText;
+            generateAndPlayAudio(text);
+        }
+        
+        showMobileAudioReady();
+    });
+    
+    // 点击背景关闭
+    tip.addEventListener('click', (e) => {
+        if (e.target === tip) {
+            if (tip.parentNode) {
+                tip.parentNode.removeChild(tip);
+            }
+        }
+    });
+}
+
+// 移动端音频错误提示
+function showMobileAudioError(message) {
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ef4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 90%;
+        text-align: center;
+    `;
+    tip.textContent = `📱 ${message}`;
+    document.body.appendChild(tip);
+    
+    setTimeout(() => {
+        if (tip.parentNode) {
+            tip.parentNode.removeChild(tip);
+        }
+    }, 4000);
+} 
