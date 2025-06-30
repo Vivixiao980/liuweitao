@@ -8,6 +8,7 @@ const path = require('path');
 const multer = require('multer');
 const FormData = require('form-data');
 const fetch = require('node-fetch');
+const dbManager = require('./database');
 
 // SiliconFlow配置文件路径
 const siliconflowConfigFile = path.join(__dirname, 'data', 'siliconflow-config.json');
@@ -499,29 +500,18 @@ app.post('/api/chat', async (req, res) => {
       reply = generateTeacherResponse(message);
     }
 
-    // 保存对话记录
+    // 保存对话记录（统一格式，兼容旧数据）
     const conversation = {
-      id: `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      user_id: userId || `user_${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      user_message: message,
-      ai_response: reply
+      id: Date.now(),
+      userId: userId || 'anonymous',
+      userMessage: message,
+      teacherResponse: reply,
+      timestamp: new Date().toISOString()
     };
 
-    // 保存到文件
+    // 使用数据库管理器保存对话
     try {
-      let conversations = [];
-      if (fs.existsSync(conversationsFile)) {
-        conversations = await fs.readJson(conversationsFile);
-      }
-      conversations.push(conversation);
-      
-      // 只保留最近的1000条记录
-      if (conversations.length > 1000) {
-        conversations = conversations.slice(-1000);
-      }
-      
-      await fs.writeJson(conversationsFile, conversations, { spaces: 2 });
+      await dbManager.saveConversation(conversation);
     } catch (saveError) {
       console.error('保存对话记录失败:', saveError);
     }
@@ -604,14 +594,7 @@ app.post('/api/audio', async (req, res) => {
 // 管理员API - 获取所有对话记录
 app.get('/api/admin/conversations', async (req, res) => {
   try {
-    const conversationsFile = path.join(__dirname, 'data', 'conversations.json');
-    
-    // 如果文件不存在，返回空数组
-    if (!fs.existsSync(conversationsFile)) {
-      return res.json([]);
-    }
-    
-    const rawConversations = await fs.readJson(conversationsFile);
+    const rawConversations = await dbManager.getAllConversations();
     
     // 确保返回数组格式
     if (!Array.isArray(rawConversations)) {
@@ -655,7 +638,7 @@ app.get('/api/admin/conversations', async (req, res) => {
 // 导出对话记录
 app.get('/api/export-conversations', async (req, res) => {
   try {
-    const conversations = await fs.readJson(conversationsFile);
+    const conversations = await dbManager.getAllConversations();
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename=conversations.json');
     res.json(conversations);
@@ -676,19 +659,37 @@ app.get('/api/debug', async (req, res) => {
       server_time: new Date().toISOString(),
       node_env: process.env.NODE_ENV,
       current_dir: __dirname,
+      
+      // 数据库配置
+      database_url: !!process.env.DATABASE_URL,
+      database_private_url: !!process.env.DATABASE_PRIVATE_URL,
+      storage_mode: dbManager.useDatabase ? 'PostgreSQL数据库' : '本地JSON文件',
+      
+      // 文件系统信息
       conversations_file_path: conversationsFile,
       file_exists: fs.existsSync(conversationsFile),
       data_dir_exists: fs.existsSync(path.join(__dirname, 'data')),
     };
     
+    // 获取数据库/文件统计
+    try {
+      const stats = await dbManager.getStats();
+      debugInfo.records_count = stats.totalConversations;
+      debugInfo.unique_users = stats.uniqueUsers;
+      debugInfo.latest_conversation = stats.latestConversation;
+    } catch (statsError) {
+      debugInfo.stats_error = statsError.message;
+    }
+    
+    // 文件信息（如果存在）
     if (fs.existsSync(conversationsFile)) {
-      const stats = fs.statSync(conversationsFile);
-      debugInfo.file_size = stats.size;
-      debugInfo.file_modified = stats.mtime;
+      const fileStats = fs.statSync(conversationsFile);
+      debugInfo.file_size = fileStats.size;
+      debugInfo.file_modified = fileStats.mtime;
       
       try {
         const data = await fs.readJson(conversationsFile);
-        debugInfo.records_count = Array.isArray(data) ? data.length : 0;
+        debugInfo.file_records_count = Array.isArray(data) ? data.length : 0;
         debugInfo.data_type = typeof data;
         debugInfo.is_array = Array.isArray(data);
       } catch (parseError) {
@@ -708,39 +709,17 @@ app.get('/api/debug', async (req, res) => {
 // 获取对话统计
 app.get('/api/stats', async (req, res) => {
   try {
-    const conversationsFile = path.join(__dirname, 'data', 'conversations.json');
+    const stats = await dbManager.getStats();
     
-    // 如果文件不存在，返回空统计
-    if (!fs.existsSync(conversationsFile)) {
-      return res.json({
-        success: true,
-        totalConversations: 0,
-        uniqueUsers: 0,
-        latestConversation: null
-      });
-    }
-    
-    const conversations = await fs.readJson(conversationsFile);
-    
-    // 确保数据是数组格式
-    if (!Array.isArray(conversations)) {
-      return res.json({
-        success: true,
-        totalConversations: 0,
-        uniqueUsers: 0,
-        latestConversation: null
-      });
-    }
-    
-    const stats = {
+    const result = {
       success: true,
-      totalConversations: conversations.length,
-      uniqueUsers: [...new Set(conversations.map(c => c.userId || 'anonymous'))].length,
-      latestConversation: conversations.length > 0 ? conversations[conversations.length - 1].timestamp : null
+      totalConversations: stats.totalConversations,
+      uniqueUsers: stats.uniqueUsers,
+      latestConversation: stats.latestConversation
     };
     
-    console.log('统计数据:', stats);
-    res.json(stats);
+    console.log('统计数据:', result);
+    res.json(result);
   } catch (error) {
     console.error('Stats error:', error);
     res.json({
@@ -2560,7 +2539,39 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`服务器运行在端口 ${PORT}`);
-  console.log(`访问地址: http://localhost:${PORT}`);
-}); 
+
+// 启动服务器并初始化数据库
+async function startServer() {
+  try {
+    // 初始化数据库
+    await dbManager.initDatabase();
+    
+    // 迁移本地数据到数据库（如果需要）
+    await dbManager.migrateFileToDatabase();
+    
+    // 启动服务器
+    server.listen(PORT, () => {
+      console.log(`服务器运行在端口 ${PORT}`);
+      console.log(`访问地址: http://localhost:${PORT}`);
+      console.log(`💾 数据存储模式: ${dbManager.useDatabase ? 'PostgreSQL数据库' : '本地JSON文件'}`);
+    });
+  } catch (error) {
+    console.error('❌ 服务器启动失败:', error);
+    process.exit(1);
+  }
+}
+
+// 优雅关闭
+process.on('SIGINT', async () => {
+  console.log('📴 正在关闭服务器...');
+  await dbManager.close();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('📴 正在关闭服务器...');
+  await dbManager.close();
+  process.exit(0);
+});
+
+startServer(); 
