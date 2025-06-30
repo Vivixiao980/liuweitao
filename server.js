@@ -668,22 +668,87 @@ app.get('/api/export-conversations', async (req, res) => {
   }
 });
 
+// 调试API - 检查服务器状态
+app.get('/api/debug', async (req, res) => {
+  try {
+    const conversationsFile = path.join(__dirname, 'data', 'conversations.json');
+    const debugInfo = {
+      server_time: new Date().toISOString(),
+      node_env: process.env.NODE_ENV,
+      current_dir: __dirname,
+      conversations_file_path: conversationsFile,
+      file_exists: fs.existsSync(conversationsFile),
+      data_dir_exists: fs.existsSync(path.join(__dirname, 'data')),
+    };
+    
+    if (fs.existsSync(conversationsFile)) {
+      const stats = fs.statSync(conversationsFile);
+      debugInfo.file_size = stats.size;
+      debugInfo.file_modified = stats.mtime;
+      
+      try {
+        const data = await fs.readJson(conversationsFile);
+        debugInfo.records_count = Array.isArray(data) ? data.length : 0;
+        debugInfo.data_type = typeof data;
+        debugInfo.is_array = Array.isArray(data);
+      } catch (parseError) {
+        debugInfo.parse_error = parseError.message;
+      }
+    }
+    
+    res.json(debugInfo);
+  } catch (error) {
+    res.json({
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // 获取对话统计
 app.get('/api/stats', async (req, res) => {
   try {
+    const conversationsFile = path.join(__dirname, 'data', 'conversations.json');
+    
+    // 如果文件不存在，返回空统计
+    if (!fs.existsSync(conversationsFile)) {
+      return res.json({
+        success: true,
+        totalConversations: 0,
+        uniqueUsers: 0,
+        latestConversation: null
+      });
+    }
+    
     const conversations = await fs.readJson(conversationsFile);
+    
+    // 确保数据是数组格式
+    if (!Array.isArray(conversations)) {
+      return res.json({
+        success: true,
+        totalConversations: 0,
+        uniqueUsers: 0,
+        latestConversation: null
+      });
+    }
+    
     const stats = {
       success: true,
       totalConversations: conversations.length,
-      uniqueUsers: [...new Set(conversations.map(c => c.userId))].length,
+      uniqueUsers: [...new Set(conversations.map(c => c.userId || 'anonymous'))].length,
       latestConversation: conversations.length > 0 ? conversations[conversations.length - 1].timestamp : null
     };
+    
+    console.log('统计数据:', stats);
     res.json(stats);
   } catch (error) {
     console.error('Stats error:', error);
-    res.status(500).json({
+    res.json({
       success: false,
-      error: '获取统计信息失败'
+      error: '获取统计信息失败: ' + error.message,
+      totalConversations: 0,
+      uniqueUsers: 0,
+      latestConversation: null
     });
   }
 });

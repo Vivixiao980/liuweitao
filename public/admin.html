@@ -370,6 +370,7 @@
                 <button class="btn btn-secondary" onclick="clearSearch()">🔄 清空</button>
                 <button class="btn btn-success" onclick="exportData()">📊 导出CSV</button>
                 <button class="btn btn-secondary" onclick="refreshData()">♻️ 刷新数据</button>
+                <button class="btn btn-secondary" onclick="showDebugInfo()">🔧 调试信息</button>
             </div>
         </div>
 
@@ -397,32 +398,76 @@
         // 加载对话数据
         async function loadConversations() {
             try {
+                console.log('开始加载对话数据...');
                 const response = await fetch('/api/admin/conversations');
+                console.log('API响应状态:', response.status);
+                
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error('管理员API接口未找到，请检查服务器配置');
                     }
-                    throw new Error('获取数据失败: ' + response.status);
+                    throw new Error('获取数据失败: HTTP ' + response.status);
                 }
+                
                 const data = await response.json();
+                console.log('收到数据:', data);
+                console.log('数据类型:', typeof data, '是否为数组:', Array.isArray(data));
+                
                 // 确保数据是数组格式
                 allConversations = Array.isArray(data) ? data : [];
                 filteredConversations = allConversations;
+                
+                console.log('处理后的对话数量:', allConversations.length);
+                
                 displayConversations();
                 updatePagination();
+                
+                // 加载完成后更新统计
+                setTimeout(updateStats, 100);
+                
             } catch (error) {
                 console.error('加载对话失败:', error);
                 // 初始化为空数组，避免undefined错误
                 allConversations = [];
                 filteredConversations = [];
                 document.getElementById('conversationsList').innerHTML = 
-                    '<div class="error">加载失败: ' + error.message + '</div>';
+                    '<div class="error">' +
+                    '<h4>⚠️ 数据加载失败</h4>' +
+                    '<p>错误信息: ' + error.message + '</p>' +
+                    '<p>请检查：</p>' +
+                    '<ul>' +
+                    '<li>服务器是否正常运行</li>' +
+                    '<li>数据文件是否存在</li>' +
+                    '<li>API接口是否可访问</li>' +
+                    '</ul>' +
+                    '<button class="btn btn-primary" onclick="loadConversations()">🔄 重新加载</button>' +
+                    '</div>';
             }
         }
 
         // 更新统计数据
         async function updateStats() {
             try {
+                // 首先尝试从服务器获取统计数据
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const serverStats = await response.json();
+                    if (serverStats.success) {
+                        document.getElementById('totalConversations').textContent = serverStats.totalConversations || 0;
+                        document.getElementById('uniqueUsers').textContent = serverStats.uniqueUsers || 0;
+                        
+                        // 计算今日对话数（本地计算）
+                        const today = new Date().toDateString();
+                        const todayCount = allConversations.filter(c => 
+                            new Date(c.timestamp).toDateString() === today
+                        ).length;
+                        document.getElementById('todayConversations').textContent = todayCount;
+                        document.getElementById('avgResponseTime').textContent = '< 2s';
+                        return;
+                    }
+                }
+                
+                // 如果服务器统计失败，使用本地计算
                 const stats = calculateStats();
                 document.getElementById('totalConversations').textContent = stats.total;
                 document.getElementById('uniqueUsers').textContent = stats.users;
@@ -430,6 +475,12 @@
                 document.getElementById('avgResponseTime').textContent = stats.avgTime;
             } catch (error) {
                 console.error('更新统计失败:', error);
+                // 使用本地计算作为备用
+                const stats = calculateStats();
+                document.getElementById('totalConversations').textContent = stats.total;
+                document.getElementById('uniqueUsers').textContent = stats.users;
+                document.getElementById('todayConversations').textContent = stats.today;
+                document.getElementById('avgResponseTime').textContent = stats.avgTime;
             }
         }
 
@@ -681,6 +732,53 @@
 
             const csvContent = [headers.join(',')].concat(rows.map(row => row.join(','))).join('\n');
             return '\ufeff' + csvContent; // 添加BOM以支持中文
+        }
+
+        // 显示调试信息
+        async function showDebugInfo() {
+            try {
+                const response = await fetch('/api/debug');
+                const debugData = await response.json();
+                
+                const debugHTML = `
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h4>🔧 系统调试信息</h4>
+                        <pre style="background: #ffffff; padding: 15px; border-radius: 5px; overflow: auto; font-size: 12px;">
+${JSON.stringify(debugData, null, 2)}
+                        </pre>
+                        <button class="btn btn-secondary" onclick="copyDebugInfo()">📋 复制调试信息</button>
+                    </div>
+                `;
+                
+                document.getElementById('conversationsList').innerHTML = debugHTML;
+                
+                // 存储调试信息供复制使用
+                window.lastDebugInfo = debugData;
+                
+            } catch (error) {
+                console.error('获取调试信息失败:', error);
+                document.getElementById('conversationsList').innerHTML = 
+                    '<div class="error">获取调试信息失败: ' + error.message + '</div>';
+            }
+        }
+        
+        // 复制调试信息
+        function copyDebugInfo() {
+            if (window.lastDebugInfo) {
+                const text = JSON.stringify(window.lastDebugInfo, null, 2);
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('调试信息已复制到剪贴板');
+                }).catch(() => {
+                    // 备用方案
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('调试信息已复制到剪贴板');
+                });
+            }
         }
 
         // 回车搜索
