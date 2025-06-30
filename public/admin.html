@@ -222,6 +222,28 @@
 
         .conversation-content {
             margin-top: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .conversation-content.expanded {
+            max-height: 1000px;
+        }
+
+        .conversation-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .conversation-toggle:hover {
+            background-color: #f0f0f0;
         }
 
         .message {
@@ -370,6 +392,7 @@
                 <button class="btn btn-secondary" onclick="clearSearch()">🔄 清空</button>
                 <button class="btn btn-success" onclick="exportData()">📊 导出CSV</button>
                 <button class="btn btn-secondary" onclick="refreshData()">♻️ 刷新数据</button>
+                <button class="btn btn-secondary" onclick="toggleAllConversations()">📖 展开全部</button>
                 <button class="btn btn-secondary" onclick="showDebugInfo()">🔧 调试信息</button>
             </div>
         </div>
@@ -532,6 +555,7 @@
                 
                 const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
                 
+                const conversationId = 'conv_' + conversation.id;
                 return '<div class="conversation-item">' +
                     '<div class="conversation-header">' +
                         '<div class="conversation-meta">' +
@@ -539,13 +563,16 @@
                             '<span>🕒 ' + formatDate(conversation.timestamp || new Date()) + '</span>' +
                             '<span>💬 ' + messages.length + ' 条消息</span>' +
                         '</div>' +
+                        '<button class="conversation-toggle" onclick="toggleConversation(\'' + conversationId + '\')">' +
+                            '📖 查看对话' +
+                        '</button>' +
                     '</div>' +
-                    '<div class="conversation-content">' +
+                    '<div class="conversation-content" id="' + conversationId + '">' +
                         messages.map(msg => {
                             if (!msg || !msg.content) return '';
                             return '<div class="message ' + (msg.role || 'unknown') + '">' +
                                 '<div class="message-label">' + (msg.role === 'user' ? '用户' : '刘蔚涛老师') + '</div>' +
-                                '<div class="message-text">' + msg.content + '</div>' +
+                                '<div class="message-text">' + msg.content.replace(/\n/g, '<br>') + '</div>' +
                             '</div>';
                         }).join('') +
                     '</div>' +
@@ -607,6 +634,51 @@
             currentPage = page;
             displayConversations();
             updatePagination();
+        }
+
+        // 展开/折叠对话内容
+        function toggleConversation(conversationId) {
+            const content = document.getElementById(conversationId);
+            const toggleBtn = content.parentElement.querySelector('.conversation-toggle');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggleBtn.innerHTML = '📖 查看对话';
+            } else {
+                content.classList.add('expanded');
+                toggleBtn.innerHTML = '📕 折叠对话';
+            }
+        }
+
+        // 全部展开/折叠对话
+        function toggleAllConversations() {
+            const allContents = document.querySelectorAll('.conversation-content');
+            const toggleButton = document.querySelector('button[onclick="toggleAllConversations()"]');
+            
+            // 检查是否有任何已展开的对话
+            const hasExpanded = Array.from(allContents).some(content => content.classList.contains('expanded'));
+            
+            if (hasExpanded) {
+                // 全部折叠
+                allContents.forEach(content => {
+                    content.classList.remove('expanded');
+                    const toggleBtn = content.parentElement.querySelector('.conversation-toggle');
+                    if (toggleBtn) {
+                        toggleBtn.innerHTML = '📖 查看对话';
+                    }
+                });
+                toggleButton.innerHTML = '📖 展开全部';
+            } else {
+                // 全部展开
+                allContents.forEach(content => {
+                    content.classList.add('expanded');
+                    const toggleBtn = content.parentElement.querySelector('.conversation-toggle');
+                    if (toggleBtn) {
+                        toggleBtn.innerHTML = '📕 折叠对话';
+                    }
+                });
+                toggleButton.innerHTML = '📕 折叠全部';
+            }
         }
 
         // 搜索对话
